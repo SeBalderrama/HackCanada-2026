@@ -52,6 +52,7 @@ clothesrent/
 │   │   ├── ListingsPanel.tsx      # Seller's listings (CRUD, status toggle, stored transforms)
 │   │   ├── TransactionsPanel.tsx  # Purchase history table
 │   │   ├── ThriftOutPanel.tsx     # Browse & purchase live listings + stored transforms
+|   |   |- PersonalizePanel.tsx    # Upload up to 10 looks + AI style suggestion (stub)
 │   │   ├── navBar.tsx             # Top navigation (Home, Shop, placeholder search, auth actions)
 │   │   └── uploadPhotoButton.tsx  # Direct-to-Cloudinary upload button
 │   │
@@ -92,7 +93,7 @@ clothesrent/
 | Path | Component | Description |
 |------|-----------|-------------|
 | `/` | `LandingPage` | Hero product carousel + nearby rental map |
-| `/shop` | `ShopPage` | Seller dashboard with 3 tabs |
+| `/shop` | `ShopPage` | Seller dashboard with 4 tabs |
 | `/shop/new-listing` | `SellerUploadPosting` | Create a new listing form |
 | `/profile` | `ProfilePage` | User profile (picture, name, style) |
 | `/signin` | `SignInPage` | Auth0 login / signup entry page |
@@ -110,7 +111,7 @@ clothesrent/
 
 ### 2. Seller Dashboard (`/shop`)
 
-Three-tab sidebar layout. Displays the signed-in user's nickname/email. All tabs receive the Auth0 `user.sub` as `userId` and scope data to the current user.
+Four-tab sidebar layout. Displays the signed-in user's nickname/email. All tabs receive the Auth0 `user.sub` as `userId` and scope data to the current user.
 
 #### Tab: My Listings (`ListingsPanel`)
 - Fetches all seller listings from `GET /api/listings` and **filters by current user's Auth0 ID**
@@ -140,6 +141,14 @@ Three-tab sidebar layout. Displays the signed-in user's nickname/email. All tabs
 - Prevents self-purchase and double-purchase (backend validated)
 
 ### 3. Create Listing — Multi-Step Flow (`/shop/new-listing`)
+#### Tab: Personalize (`PersonalizePanel`)
+- Upload up to 10 inspiration images
+- Styled "Browse Photos" action aligned with site button styling
+- Thumbnail grid preview of selected uploads before analysis
+- Placeholder AI analyze action (Gemini integration pending)
+- Shows returned style and allows manual edits
+- Saves the chosen style to profile storage so `/profile` shows the updated style
+
 
 Three-step interactive listing creator with live AI transformation preview:
 
@@ -179,6 +188,7 @@ Three-step interactive listing creator with live AI transformation preview:
 - Displays profile picture, name, and style
 - Profile picture can be changed via local image upload
 - Name/style and custom picture are saved in local storage per Auth0 user
+- Style can also be updated from Shop -> Personalize and appears here automatically
 
 ---
 
@@ -221,6 +231,7 @@ All backend communication is centralized in two files:
 | `ListingsPanel` | `ListingsPanel.tsx` | `userId: string` | Seller's listing management — applies stored transformations to display images |
 | `TransactionsPanel` | `TransactionsPanel.tsx` | `userId: string` | Purchase history — shows buyer/seller role pill, Cloudinary thumbnails |
 | `ThriftOutPanel` | `ThriftOutPanel.tsx` | `userId: string` | Browse live listings — applies stored transformations + conditional badges, Auth0-powered purchase |
+| `PersonalizePanel` | `PersonalizePanel.tsx` | `userId, fallbackName, fallbackPicture` | Upload up to 10 photos with thumbnail previews, run placeholder AI style analysis, and save style into profile storage |
 
 ---
 

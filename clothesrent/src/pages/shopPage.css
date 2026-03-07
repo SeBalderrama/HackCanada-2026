@@ -356,3 +356,119 @@
   border: 1px solid rgb(37 31 51 / 10%);
   border-radius: 2px;
 }
+
+.personalize-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+  max-width: 860px;
+}
+
+.personalize-uploader {
+  border: 1px solid rgb(37 31 51 / 14%);
+  background: #fff;
+  padding: 0.95rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem;
+  flex-wrap: wrap;
+}
+
+.personalize-uploader-title {
+  font-family: "Cormorant Garamond", serif;
+  font-size: 1.2rem;
+  color: var(--ink);
+}
+
+.personalize-uploader-meta {
+  color: var(--warm-grey);
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-top: 0.2rem;
+}
+
+.personalize-browse-btn {
+  font-size: 0.65rem;
+  padding: 0.62rem 1rem;
+}
+
+.personalize-input-file-hidden {
+  display: none;
+}
+
+.personalize-label {
+  display: block;
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--warm-grey);
+}
+
+.personalize-input-file,
+.personalize-input {
+  width: 100%;
+  border: 1px solid rgb(37 31 51 / 18%);
+  background: #fff;
+  color: var(--ink);
+  padding: 0.7rem 0.85rem;
+  font-size: 0.85rem;
+}
+
+.personalize-input:focus {
+  outline: none;
+  border-color: var(--ink);
+}
+
+.personalize-thumb-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 0.6rem;
+}
+
+.personalize-thumb-card {
+  border: 1px solid rgb(37 31 51 / 12%);
+  background: #fff;
+  padding: 0.4rem;
+}
+
+.personalize-thumb-img {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  display: block;
+}
+
+.personalize-thumb-name {
+  margin-top: 0.35rem;
+  font-size: 0.66rem;
+  color: var(--warm-grey);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.personalize-file-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.personalize-actions {
+  margin-top: 0.2rem;
+}
+
+.personalize-result-card {
+  border: 1px solid rgb(37 31 51 / 12%);
+  background: #fff;
+  padding: 0.9rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.personalize-result-line {
+  font-size: 0.88rem;
+  color: var(--ink);
+}

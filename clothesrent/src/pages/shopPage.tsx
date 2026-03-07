@@ -3,9 +3,10 @@ import { useAuth0 } from "@auth0/auth0-react";
 import ListingsPanel from "../components/ListingsPanel";
 import TransactionsPanel from "../components/TransactionsPanel";
 import ThriftOutPanel from "../components/ThriftOutPanel";
+import PersonalizePanel from "../components/PersonalizePanel";
 import "./shopPage.css";
 
-type ShopView = "listings" | "transactions" | "thriftOut";
+type ShopView = "listings" | "transactions" | "thriftOut" | "personalize";
 
 export default function ShopPage() {
   const { user, isAuthenticated } = useAuth0();
@@ -44,6 +45,12 @@ export default function ShopPage() {
             onClick={() => setActiveView("thriftOut")}>
             Thrift Out
           </button>
+          <button
+            type="button"
+            className={`shop-nav-btn${activeView === "personalize" ? " active" : ""}`}
+            onClick={() => setActiveView("personalize")}>
+            Personalize
+          </button>
         </aside>
 
         <section className="shop-content">
@@ -52,12 +59,20 @@ export default function ShopPage() {
               {activeView === "listings" && "My Listings"}
               {activeView === "transactions" && "Transaction Log"}
               {activeView === "thriftOut" && "Thrift Out"}
+              {activeView === "personalize" && "Personalize"}
             </h2>
           </header>
 
           {activeView === "listings" && <ListingsPanel userId={userId} />}
           {activeView === "transactions" && <TransactionsPanel userId={userId} />}
           {activeView === "thriftOut" && <ThriftOutPanel userId={userId} />}
+          {activeView === "personalize" && (
+            <PersonalizePanel
+              userId={userId}
+              fallbackName={user?.name ?? user?.nickname ?? ""}
+              fallbackPicture={user?.picture ?? ""}
+            />
+          )}
         </section>
       </div>
     </main>

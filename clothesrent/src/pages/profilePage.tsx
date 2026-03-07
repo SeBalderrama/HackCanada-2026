@@ -1,19 +1,16 @@
 import { useEffect, useMemo, useState, type ChangeEvent } from "react";
 import { useAuth0 } from "@auth0/auth0-react";
 import "./profilePage.css";
-
-type StoredProfile = {
-  name: string;
-  style: string;
-  picture: string;
-};
+import {
+  loadUserProfile,
+  PROFILE_UPDATED_EVENT,
+  saveUserProfile,
+  type UserProfileData,
+} from "../utils/profileStorage";
 
 export default function ProfilePage() {
   const { user } = useAuth0();
-  const storageKey = useMemo(
-    () => `clothesrent-profile-${user?.sub ?? "anonymous"}`,
-    [user?.sub],
-  );
+  const userId = useMemo(() => user?.sub ?? "anonymous", [user?.sub]);
 
   const [name, setName] = useState("");
   const [style, setStyle] = useState("");
@@ -21,27 +18,33 @@ export default function ProfilePage() {
   const [saved, setSaved] = useState(false);
 
   useEffect(() => {
-    const fallbackName = user?.name ?? user?.nickname ?? "";
-    const fallbackStyle = "";
-    const fallbackPicture = user?.picture ?? "";
+    const fallback: UserProfileData = {
+      name: user?.name ?? user?.nickname ?? "",
+      style: "",
+      picture: user?.picture ?? "",
+    };
+    const profile = loadUserProfile(userId, fallback);
+    setName(profile.name);
+    setStyle(profile.style);
+    setPicture(profile.picture);
+  }, [userId, user?.name, user?.nickname, user?.picture]);
 
-    try {
-      const raw = localStorage.getItem(storageKey);
-      if (raw) {
-        const parsed = JSON.parse(raw) as StoredProfile;
-        setName(parsed.name || fallbackName);
-        setStyle(parsed.style || fallbackStyle);
-        setPicture(parsed.picture || fallbackPicture);
-        return;
-      }
-    } catch {
-      // Ignore invalid local storage and fallback to Auth0 data.
-    }
+  useEffect(() => {
+    const handleProfileUpdated = (event: Event) => {
+      const customEvent = event as CustomEvent<UserProfileData>;
+      const updated = customEvent.detail;
+      if (!updated) return;
+      setName(updated.name);
+      setStyle(updated.style);
+      setPicture(updated.picture);
+      setSaved(true);
+    };
 
-    setName(fallbackName);
-    setStyle(fallbackStyle);
-    setPicture(fallbackPicture);
-  }, [storageKey, user?.name, user?.nickname, user?.picture]);
+    window.addEventListener(PROFILE_UPDATED_EVENT, handleProfileUpdated);
+    return () => {
+      window.removeEventListener(PROFILE_UPDATED_EVENT, handleProfileUpdated);
+    };
+  }, []);
 
   const handlePictureChange = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -58,8 +61,8 @@ export default function ProfilePage() {
   };
 
   const handleSave = () => {
-    const payload: StoredProfile = { name, style, picture };
-    localStorage.setItem(storageKey, JSON.stringify(payload));
+    const payload: UserProfileData = { name, style, picture };
+    saveUserProfile(userId, payload);
     setSaved(true);
   };
 
