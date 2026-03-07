@@ -4,6 +4,7 @@ import { CircleMarker, MapContainer, Popup, TileLayer } from "react-leaflet";
 import "./App.css";
 import { UploadPhotoButton } from "./components/uploadPhotoButton";
 import ShopPage from "./pages/shopPage";
+import SellerUploadPosting from "./pages/sellerUploadPosting";
 
 type Product = {
   id: number;
@@ -430,6 +431,10 @@ export default function App() {
 
   if (path === "/signin") {
     return <SignInPage />;
+  }
+
+  if (path === "/shop/new-listing") {
+    return <SellerUploadPosting />;
   }
 
   if (path === "/shop") {

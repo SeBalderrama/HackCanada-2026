@@ -82,6 +82,16 @@
   letter-spacing: 0.03em;
 }
 
+.shop-listings-toolbar {
+  margin-bottom: 0.9rem;
+}
+
+.shop-create-link {
+  font-size: 0.66rem;
+  padding: 0.7rem 1.15rem;
+  text-decoration: none;
+}
+
 .shop-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));

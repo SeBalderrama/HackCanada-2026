@@ -1,6 +1,5 @@
 import { useState } from "react";
 import "./shopPage.css";
-import { UploadPhotoButton } from "../components/uploadPhotoButton";
 
 type ShopView = "listings" | "transactions" | "thriftOut";
 
@@ -139,23 +138,29 @@ const THRIFT_OUT_ITEMS: InventoryItem[] = [
 
 function ListingsPanel() {
   return (
-    <div className="shop-grid">
-
-      {LISTINGS.map((listing) => (
-        <article key={listing.id} className="shop-card">
-          <div className="shop-card-top">
-            <h3 className="shop-card-title">{listing.title}</h3>
-            <span
-              className={`shop-pill shop-pill-${listing.status.toLowerCase()}`}>
-              {listing.status}
-            </span>
-          </div>
-          <p className="shop-card-meta">Size {listing.size}</p>
-          <p className="shop-card-rate">{listing.dailyRate}</p>
-          <p className="shop-card-meta">{listing.views} views this week</p>
-        </article>
-      ))}
-    </div>
+    <>
+      <div className="shop-listings-toolbar">
+        <a href="/shop/new-listing" className="btn-primary shop-create-link">
+          Create Listing
+        </a>
+      </div>
+      <div className="shop-grid">
+        {LISTINGS.map((listing) => (
+          <article key={listing.id} className="shop-card">
+            <div className="shop-card-top">
+              <h3 className="shop-card-title">{listing.title}</h3>
+              <span
+                className={`shop-pill shop-pill-${listing.status.toLowerCase()}`}>
+                {listing.status}
+              </span>
+            </div>
+            <p className="shop-card-meta">Size {listing.size}</p>
+            <p className="shop-card-rate">{listing.dailyRate}</p>
+            <p className="shop-card-meta">{listing.views} views this week</p>
+          </article>
+        ))}
+      </div>
+    </>
   );
 }
 
