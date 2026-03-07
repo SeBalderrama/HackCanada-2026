@@ -36,6 +36,7 @@ export const createListing = async (req: Request, res: Response) => {
       description,
       price,
       dailyRate,
+      location,
       tags,
       sellerId,
       cloudinaryUrl: preUploadedUrl,
@@ -44,8 +45,8 @@ export const createListing = async (req: Request, res: Response) => {
       transformations,
     } = req.body as CreateListingBody;
 
-    if (!title || !description || price == null) {
-      res.status(400).json({ error: "title, description, and price are required" });
+    if (!title || !description || price == null || !location?.trim()) {
+      res.status(400).json({ error: "title, description, price, and location are required" });
       return;
     }
 
@@ -90,6 +91,7 @@ export const createListing = async (req: Request, res: Response) => {
       description,
       price,
       dailyRate: dailyRate ?? 0,
+      location: location?.trim() ?? "",
       cloudinaryUrl,
       publicId,
       tags: mergedTags,
@@ -113,6 +115,7 @@ export const createListing = async (req: Request, res: Response) => {
         sellerId: listing.sellerId,
         title: listing.title,
         description: listing.description,
+        location: listing.location,
         cloudinaryUrl: listing.cloudinaryUrl,
         publicId: listing.publicId,
         tags: listing.tags,

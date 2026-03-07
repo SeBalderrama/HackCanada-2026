@@ -156,6 +156,9 @@ export default function ThriftOutPanel({ userId }: Props) {
               )}
               <h3 className="shop-card-title">{item.title}</h3>
               <p className="shop-card-meta">{item.description}</p>
+              {item.location && (
+                <p className="shop-card-meta shop-card-location">Location: {item.location}</p>
+              )}
               <p className="shop-card-rate">
                 ${item.price}
                 {item.dailyRate > 0 && (

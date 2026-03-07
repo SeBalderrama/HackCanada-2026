@@ -120,6 +120,9 @@ export default function ListingsPanel({ userId }: Props) {
                   </span>
                 </div>
                 <p className="shop-card-meta">{listing.description}</p>
+                {listing.location && (
+                  <p className="shop-card-meta shop-card-location">Location: {listing.location}</p>
+                )}
                 <p className="shop-card-rate">
                   ${listing.price}
                   {listing.dailyRate > 0 && (

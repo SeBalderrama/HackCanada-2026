@@ -95,7 +95,7 @@ clothesrent/
 | `/` | `LandingPage` | Hero product carousel + nearby rental map |
 | `/shop` | `ShopPage` | Seller dashboard with 4 tabs |
 | `/shop/new-listing` | `SellerUploadPosting` | Create a new listing form |
-| `/profile` | `ProfilePage` | User profile (picture, name, style) |
+| `/profile` | `ProfilePage` | User profile (picture, name, style, location) |
 | `/signin` | `SignInPage` | Auth0 login / signup entry page |
 
 ---
@@ -176,6 +176,7 @@ Three-step interactive listing creator with live AI transformation preview:
 
 - Title, description, price (required)
 - Daily rate, comma-separated tags (optional)
+- Location address (required) with type-ahead address suggestions (address, postal code, city, country)
 - **Auth0 `user.sub`** automatically sent as `sellerId`
 - Preview image shows the **transformed version** (Cloudinary URL with all step-2 transformations applied)
 - **Details preview loading overlay** appears while the final transformed image is still loading
@@ -193,10 +194,11 @@ Three-step interactive listing creator with live AI transformation preview:
 ### 5. Profile (`/profile`)
 
 - Protected page for authenticated users
-- Displays profile picture, name, and style
+- Displays profile picture, name, style, and location (with type-ahead suggestions (address, postal code, city, country))
 - Profile picture can be changed via local image upload
 - Name/style and custom picture are saved in local storage per Auth0 user
 - Style can also be updated from Shop -> Personalize and appears here automatically
+- Saved profile location is geocoded and shown on the landing page map
 
 ---
 
@@ -466,3 +468,7 @@ All images served through Cloudinary's CDN with transformations applied via URL 
 Display components (`ListingsPanel`, `ThriftOutPanel`) read the `listing.transformations` field from the database and pass it to `buildDisplayUrl()` so the seller's chosen enhancements are applied consistently everywhere the image is shown.
 
 Grid cards are capped at `max-width: 320px` with `auto-fill` layout (no stretching on wide screens). All images use `loading="lazy"` for deferred loading below the fold.
+
+
+
+

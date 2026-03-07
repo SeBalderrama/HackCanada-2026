@@ -5,6 +5,7 @@ import { uploadImage, createListing } from "../api/listings";
 import type { ImageTransformations } from "../types/listing";
 import { DEFAULT_TRANSFORMATIONS } from "../types/listing";
 import ImageTransformPanel from "../components/ImageTransformPanel";
+import LocationAutocompleteInput from "../components/LocationAutocompleteInput";
 import { buildDisplayUrl } from "../utils/cloudinaryUrl";
 import "./sellerUploadPosting.css";
 
@@ -14,6 +15,7 @@ type ListingDraft = {
   price: string;
   dailyRate: string;
   tags: string;
+  location: string;
 };
 
 const INITIAL_DRAFT: ListingDraft = {
@@ -22,6 +24,7 @@ const INITIAL_DRAFT: ListingDraft = {
   price: "",
   dailyRate: "",
   tags: "",
+  location: "",
 };
 
 type Step = "upload" | "transform" | "details";
@@ -62,6 +65,7 @@ export default function SellerUploadPosting() {
       draft.title.trim() &&
       draft.description.trim() &&
       draft.price.trim() &&
+      draft.location.trim() &&
       cloudinaryUrl &&
       publicId,
     );
@@ -161,6 +165,7 @@ export default function SellerUploadPosting() {
         price: parseFloat(draft.price),
         dailyRate: draft.dailyRate ? parseFloat(draft.dailyRate) : undefined,
         tags: userTags,
+        location: draft.location.trim(),
         sellerId: user?.sub,
         cloudinaryUrl,
         publicId,
@@ -439,6 +444,23 @@ export default function SellerUploadPosting() {
                   setDraft((p) => ({ ...p, tags: e.target.value }))
                 }
               />
+
+              <section className="seller-location-card">
+                <label htmlFor="listing-location" className="seller-field-label">
+                  Location
+                </label>
+                <p className="seller-location-hint">
+                  Add your pickup address so nearby users can find this listing.
+                </p>
+                <LocationAutocompleteInput
+                  id="listing-location"
+                  inputClassName="seller-field-input"
+                  placeholder="e.g. 100 Queen St W, Toronto"
+                  value={draft.location}
+                  onChange={(next) => setDraft((p) => ({ ...p, location: next }))}
+                  required
+                />
+              </section>
 
               <div className="seller-step-nav" style={{ marginTop: "0.5rem" }}>
                 <button

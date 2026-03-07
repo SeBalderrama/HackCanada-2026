@@ -1,11 +1,16 @@
 import { useEffect, useRef, useState } from "react";
 import { useAuth0 } from "@auth0/auth0-react";
-import { CircleMarker, MapContainer, Popup, TileLayer } from "react-leaflet";
+import { CircleMarker, MapContainer, Popup, TileLayer, useMap } from "react-leaflet";
 import "./App.css";
 import { UploadPhotoButton } from "./components/uploadPhotoButton";
 import ShopPage from "./pages/shopPage";
 import SellerUploadPosting from "./pages/sellerUploadPosting";
 import ProfilePage from "./pages/profilePage";
+import {
+  loadUserProfile,
+  PROFILE_UPDATED_EVENT,
+  type UserProfileData,
+} from "./utils/profileStorage";
 
 type Product = {
   id: number;
@@ -122,6 +127,39 @@ const NEARBY_RENTAL_SPOTS = [
   },
 ];
 
+const DEFAULT_MAP_CENTER: [number, number] = [43.6518, -79.3832];
+
+function MapRecenter({ center }: { center: [number, number] }) {
+  const map = useMap();
+
+  useEffect(() => {
+    map.setView(center, map.getZoom(), { animate: true });
+  }, [center, map]);
+
+  return null;
+}
+
+async function geocodeAddress(address: string): Promise<{ lat: number; lng: number } | null> {
+  const trimmed = address.trim();
+  if (!trimmed) return null;
+
+  try {
+    const response = await fetch(
+      `https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&q=${encodeURIComponent(trimmed)}`,
+    );
+    if (!response.ok) return null;
+    const data = (await response.json()) as Array<{ lat: string; lon: string }>;
+    if (!data.length) return null;
+
+    const lat = Number(data[0].lat);
+    const lng = Number(data[0].lon);
+    if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+    return { lat, lng };
+  } catch {
+    return null;
+  }
+}
+
 function ProductCard({ product }: { product: Product }) {
   return (
     <div className="product-card">
@@ -234,6 +272,59 @@ function ProductShowcase() {
 }
 
 function NearbyMapSection() {
+  const { user } = useAuth0();
+  const [userMapSpot, setUserMapSpot] = useState<{
+    name: string;
+    address: string;
+    lat: number;
+    lng: number;
+  } | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const refreshUserSpot = async () => {
+      if (!user?.sub) {
+        setUserMapSpot(null);
+        return;
+      }
+
+      const fallbackProfile: UserProfileData = {
+        name: user?.name ?? user?.nickname ?? "You",
+        style: "",
+        picture: user?.picture ?? "",
+        location: "",
+      };
+      const profile = loadUserProfile(user.sub, fallbackProfile);
+      if (!profile.location.trim()) {
+        setUserMapSpot(null);
+        return;
+      }
+
+      const coords = await geocodeAddress(profile.location);
+      if (cancelled || !coords) return;
+
+      setUserMapSpot({
+        name: profile.name || "Your profile",
+        address: profile.location,
+        lat: coords.lat,
+        lng: coords.lng,
+      });
+    };
+
+    const onProfileUpdated = () => {
+      refreshUserSpot();
+    };
+
+    refreshUserSpot();
+    window.addEventListener(PROFILE_UPDATED_EVENT, onProfileUpdated);
+
+    return () => {
+      cancelled = true;
+      window.removeEventListener(PROFILE_UPDATED_EVENT, onProfileUpdated);
+    };
+  }, [user?.name, user?.nickname, user?.picture, user?.sub]);
+
   return (
     <section className="map-section">
       <div className="map-section-head">
@@ -242,17 +333,27 @@ function NearbyMapSection() {
           Rentals Around <em>You</em>
         </h3>
         <p className="map-subtitle">
-          Frontend-only placeholder map for nearby inventory. Plug in
-          geolocation logic later.
+          Nearby rental spots plus your saved profile location.
         </p>
       </div>
 
       <div className="map-shell">
+        {/*
+          Keep map centered on profile location when available;
+          fallback to Toronto center otherwise.
+        */}
+        {(() => {
+          const center: [number, number] = userMapSpot
+            ? [userMapSpot.lat, userMapSpot.lng]
+            : DEFAULT_MAP_CENTER;
+
+          return (
         <MapContainer
-          center={[43.6518, -79.3832]}
+          center={center}
           zoom={13}
           scrollWheelZoom={false}
           className="leaflet-map">
+          <MapRecenter center={center} />
           <TileLayer
             attribution="&copy; OpenStreetMap contributors"
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -275,7 +376,27 @@ function NearbyMapSection() {
               </Popup>
             </CircleMarker>
           ))}
+          {userMapSpot && (
+            <CircleMarker
+              key={`profile-marker-${userMapSpot.lat}-${userMapSpot.lng}`}
+              center={[userMapSpot.lat, userMapSpot.lng]}
+              radius={12}
+              pathOptions={{
+                color: "#0f172a",
+                fillColor: "#38bdf8",
+                fillOpacity: 0.95,
+                weight: 2,
+              }}>
+              <Popup>
+                <strong>{userMapSpot.name} (You)</strong>
+                <br />
+                {userMapSpot.address}
+              </Popup>
+            </CircleMarker>
+          )}
         </MapContainer>
+          );
+        })()}
       </div>
     </section>
   );

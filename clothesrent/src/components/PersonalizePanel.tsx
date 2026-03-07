@@ -103,6 +103,7 @@ export default function PersonalizePanel({
       name: fallbackName,
       style: "",
       picture: fallbackPicture,
+      location: "",
     };
     const existingProfile = loadUserProfile(userId, fallback);
     saveUserProfile(userId, {

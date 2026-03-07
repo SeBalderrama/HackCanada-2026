@@ -7,6 +7,7 @@ import {
   saveUserProfile,
   type UserProfileData,
 } from "../utils/profileStorage";
+import LocationAutocompleteInput from "../components/LocationAutocompleteInput";
 
 export default function ProfilePage() {
   const { user } = useAuth0();
@@ -15,6 +16,7 @@ export default function ProfilePage() {
   const [name, setName] = useState("");
   const [style, setStyle] = useState("");
   const [picture, setPicture] = useState("");
+  const [location, setLocation] = useState("");
   const [saved, setSaved] = useState(false);
 
   useEffect(() => {
@@ -22,11 +24,13 @@ export default function ProfilePage() {
       name: user?.name ?? user?.nickname ?? "",
       style: "",
       picture: user?.picture ?? "",
+      location: "",
     };
     const profile = loadUserProfile(userId, fallback);
     setName(profile.name);
     setStyle(profile.style);
     setPicture(profile.picture);
+    setLocation(profile.location);
   }, [userId, user?.name, user?.nickname, user?.picture]);
 
   useEffect(() => {
@@ -37,6 +41,7 @@ export default function ProfilePage() {
       setName(updated.name);
       setStyle(updated.style);
       setPicture(updated.picture);
+      setLocation(updated.location);
       setSaved(true);
     };
 
@@ -61,7 +66,7 @@ export default function ProfilePage() {
   };
 
   const handleSave = () => {
-    const payload: UserProfileData = { name, style, picture };
+    const payload: UserProfileData = { name, style, picture, location };
     saveUserProfile(userId, payload);
     setSaved(true);
   };
@@ -117,6 +122,20 @@ export default function ProfilePage() {
             setSaved(false);
           }}
           placeholder="e.g. Goth"
+        />
+
+        <label className="profile-label" htmlFor="profile-location">
+          Location
+        </label>
+        <LocationAutocompleteInput
+          id="profile-location"
+          inputClassName="profile-input"
+          value={location}
+          onChange={(next) => {
+            setLocation(next);
+            setSaved(false);
+          }}
+          placeholder="e.g. 100 Queen St W, Toronto"
         />
 
         <div className="profile-actions">

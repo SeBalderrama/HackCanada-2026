@@ -1,0 +1,160 @@
+import { useEffect, useMemo, useState, type ChangeEvent } from "react";
+import "./locationAutocompleteInput.css";
+
+type Suggestion = {
+  id: string;
+  label: string;
+};
+
+interface Props {
+  id: string;
+  value: string;
+  onChange: (value: string) => void;
+  placeholder: string;
+  required?: boolean;
+  inputClassName?: string;
+}
+
+function toSimplifiedAddress(entry: {
+  display_name: string;
+  address?: {
+    house_number?: string;
+    road?: string;
+    postcode?: string;
+    city?: string;
+    town?: string;
+    village?: string;
+    county?: string;
+    state?: string;
+    country?: string;
+  };
+}): string {
+  const address = entry.address;
+  if (!address) return entry.display_name;
+
+  const street = [address.house_number, address.road].filter(Boolean).join(" ").trim();
+  const postal = address.postcode?.trim() ?? "";
+  const city = (address.city || address.town || address.village || address.county || address.state || "").trim();
+  const country = (address.country || "").trim();
+
+  const main = [street, postal, city, country].filter(Boolean).join(", ");
+  return main || entry.display_name;
+}
+
+export default function LocationAutocompleteInput({
+  id,
+  value,
+  onChange,
+  placeholder,
+  required = false,
+  inputClassName,
+}: Props) {
+  const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
+  const [isOpen, setIsOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const trimmed = useMemo(() => value.trim(), [value]);
+
+  useEffect(() => {
+    const query = trimmed;
+    if (query.length < 3) {
+      setSuggestions([]);
+      setIsLoading(false);
+      return;
+    }
+
+    const controller = new AbortController();
+    const timeout = window.setTimeout(async () => {
+      setIsLoading(true);
+      try {
+        const response = await fetch(
+          `https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&limit=5&q=${encodeURIComponent(query)}`,
+          { signal: controller.signal },
+        );
+        if (!response.ok) {
+          setSuggestions([]);
+          return;
+        }
+
+        const data = (await response.json()) as Array<{
+          place_id: number;
+          display_name: string;
+          address?: {
+            house_number?: string;
+            road?: string;
+            postcode?: string;
+            city?: string;
+            town?: string;
+            village?: string;
+            county?: string;
+            state?: string;
+            country?: string;
+          };
+        }>;
+        const nextSuggestions = data.map((entry) => ({
+          id: String(entry.place_id),
+          label: toSimplifiedAddress(entry),
+        }));
+        const deduped = nextSuggestions.filter(
+          (item, index, all) =>
+            all.findIndex((other) => other.label === item.label) === index,
+        );
+        setSuggestions(deduped);
+      } catch {
+        setSuggestions([]);
+      } finally {
+        setIsLoading(false);
+      }
+    }, 300);
+
+    return () => {
+      controller.abort();
+      window.clearTimeout(timeout);
+    };
+  }, [trimmed]);
+
+  const handleInputChange = (event: ChangeEvent<HTMLInputElement>) => {
+    onChange(event.target.value);
+    setIsOpen(true);
+  };
+
+  return (
+    <div className="location-autocomplete">
+      <input
+        id={id}
+        type="text"
+        className={inputClassName}
+        placeholder={placeholder}
+        value={value}
+        required={required}
+        autoComplete="off"
+        onFocus={() => setIsOpen(true)}
+        onBlur={() => {
+          window.setTimeout(() => setIsOpen(false), 120);
+        }}
+        onChange={handleInputChange}
+      />
+
+      {isOpen && (isLoading || suggestions.length > 0) && (
+        <div className="location-autocomplete-menu">
+          {isLoading && (
+            <div className="location-autocomplete-row">Searching...</div>
+          )}
+          {!isLoading &&
+            suggestions.map((suggestion) => (
+              <button
+                key={suggestion.id}
+                type="button"
+                className="location-autocomplete-row location-autocomplete-option"
+                onClick={() => {
+                  onChange(suggestion.label);
+                  setIsOpen(false);
+                }}>
+                {suggestion.label}
+              </button>
+            ))}
+        </div>
+      )}
+    </div>
+  );
+}

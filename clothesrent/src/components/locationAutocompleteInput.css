@@ -1,0 +1,34 @@
+.location-autocomplete {
+  position: relative;
+}
+
+.location-autocomplete-menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  z-index: 30;
+  border: 1px solid rgb(37 31 51 / 14%);
+  background: #fff;
+  box-shadow: 0 10px 26px rgb(37 31 51 / 12%);
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.location-autocomplete-row {
+  width: 100%;
+  text-align: left;
+  padding: 0.6rem 0.7rem;
+  font-size: 0.8rem;
+  color: var(--ink);
+  border: none;
+  background: #fff;
+}
+
+.location-autocomplete-option {
+  cursor: pointer;
+}
+
+.location-autocomplete-option:hover {
+  background: rgb(237 232 223 / 45%);
+}

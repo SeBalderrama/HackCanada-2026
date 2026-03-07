@@ -117,6 +117,20 @@
   min-height: 120px;
 }
 
+.seller-location-card {
+  border: 1px solid rgb(37 31 51 / 12%);
+  background: rgb(247 244 239 / 45%);
+  padding: 0.75rem;
+  margin-top: 0.3rem;
+}
+
+.seller-location-hint {
+  margin-bottom: 0.5rem;
+  color: var(--warm-grey);
+  font-size: 0.76rem;
+  letter-spacing: 0.03em;
+}
+
 .seller-submit-btn {
   margin-top: 0.35rem;
   justify-content: center;

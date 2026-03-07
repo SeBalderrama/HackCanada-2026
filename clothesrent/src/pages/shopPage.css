@@ -132,6 +132,12 @@
   letter-spacing: 0.03em;
 }
 
+.shop-card-location {
+  color: var(--ink);
+  font-size: 0.75rem;
+  margin-top: 0.2rem;
+}
+
 .shop-pill {
   display: inline-block;
   padding: 0.22rem 0.52rem;
