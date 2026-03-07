@@ -8,31 +8,47 @@ export interface IUser extends Document {
   styleProfileJSON?: object;
 }
 
-export interface IListing extends Document {
+export interface IUserItemSell extends Document {
   sellerId: string;
   title: string;
   description: string;
   price: number;
-  size: string;
-  imageUrl: string;
-  publicId: string;
-  images: string[];
-  cloudinaryTags: string[];
-  geminiKeywords: string[];
-  status: "Live" | "Draft" | "Paused";
-  views: number;
   dailyRate: number;
+  cloudinaryUrl: string;
+  publicId: string;
+  tags: string[];
+  bbLink?: string;
+  status: "Draft" | "Live" | "Paused" | "Sold";
   createdAt: Date;
   updatedAt: Date;
 }
 
+export interface IUserItemBuy extends Document {
+  itemId: string;
+  buyerId: string;
+  sellerId: string;
+  purchaseDate: Date;
+  cloudinaryUrl: string;
+  title: string;
+  price: number;
+  tags: string[];
+}
+
 export interface CreateListingBody {
+  sellerId?: string;
   title: string;
   description: string;
-  price?: number;
-  size: string;
-  imageUrl: string;
+  price: number;
+  dailyRate: number;
+  tags?: string[];
+}
+
+export interface PurchaseBody {
+  buyerId: string;
+}
+
+export interface CloudinaryUploadResult {
+  url: string;
   publicId: string;
-  cloudinaryTags?: string[];
-  dailyRate?: number;
+  tags: string[];
 }

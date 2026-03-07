@@ -1,0 +1,144 @@
+.seller-posting-page {
+  margin-top: 68px;
+  min-height: calc(100vh - 68px);
+  padding: 2rem;
+}
+
+.seller-posting-shell {
+  width: min(1100px, 100%);
+  margin: 0 auto;
+  border: 1px solid rgb(37 31 51 / 10%);
+  background: rgb(247 244 239 / 88%);
+  box-shadow: 0 20px 34px rgb(37 31 51 / 8%);
+  padding: 1.25rem;
+}
+
+.seller-posting-head {
+  margin-bottom: 1.1rem;
+}
+
+.seller-posting-back-link {
+  color: var(--warm-grey);
+  text-decoration: none;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  font-size: 0.62rem;
+}
+
+.seller-posting-title {
+  margin-top: 0.4rem;
+  color: var(--ink);
+  font-weight: 300;
+  font-size: clamp(2rem, 4vw, 3rem);
+}
+
+.seller-posting-subtitle {
+  margin-top: 0.45rem;
+  color: var(--warm-grey);
+  font-size: 0.86rem;
+}
+
+.seller-posting-grid {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: 1.1rem;
+}
+
+.seller-preview-panel {
+  border: 1px solid rgb(37 31 51 / 12%);
+  background: #fff;
+  padding: 0.85rem;
+}
+
+.seller-preview-box {
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  border: 1px dashed rgb(37 31 51 / 22%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 0.8rem;
+  overflow: hidden;
+  background: rgb(237 232 223 / 28%);
+}
+
+.seller-preview-placeholder {
+  color: var(--warm-grey);
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.seller-preview-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.seller-posting-form {
+  border: 1px solid rgb(37 31 51 / 12%);
+  background: #fff;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.seller-field-label {
+  color: var(--ink);
+  font-size: 0.73rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.seller-field-input {
+  width: 100%;
+  border: 1px solid rgb(37 31 51 / 20%);
+  background: #fff;
+  color: var(--ink);
+  font-size: 0.9rem;
+  font-family: "Jost", sans-serif;
+  padding: 0.65rem 0.7rem;
+  outline: none;
+}
+
+.seller-field-input:focus {
+  border-color: var(--accent-deep);
+}
+
+.seller-field-textarea {
+  resize: vertical;
+  min-height: 120px;
+}
+
+.seller-submit-btn {
+  margin-top: 0.35rem;
+  justify-content: center;
+}
+
+.seller-submit-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.seller-submit-message {
+  margin-top: 0.4rem;
+  color: var(--accent-deep);
+  font-size: 0.82rem;
+}
+
+.seller-error-text {
+  margin-top: 0.55rem;
+  color: #8f1d1d;
+  font-size: 0.8rem;
+}
+
+@media (max-width: 900px) {
+  .seller-posting-page {
+    padding: 1.5rem;
+  }
+
+  .seller-posting-grid {
+    grid-template-columns: 1fr;
+  }
+}

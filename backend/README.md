@@ -1,6 +1,27 @@
 # ClothesRent Backend
 
-Express + TypeScript REST API powering the ClothesRent platform — a peer-to-peer clothing rental marketplace.
+Express + TypeScript REST API powering the ClothesRent platform — a peer-to-peer clothing rental & resale marketplace.
+
+---
+
+## Architecture Overview
+
+```
+Frontend (Vite + React)
+        │
+        │  Auth0 login
+        ▼
+  Express API (TypeScript)
+        │
+  ┌─────┼────────────────────────┐
+  │     │                        │
+  ▼     ▼                        ▼
+Gemini API    Cloudinary      Backboard.io
+                │
+                ▼
+            MongoDB
+       (Mongoose Models)
+```
 
 ---
 
@@ -11,10 +32,11 @@ Express + TypeScript REST API powering the ClothesRent platform — a peer-to-pe
 | Runtime | Node.js |
 | Framework | Express.js |
 | Language | TypeScript |
-| Database | MongoDB (Mongoose ODM) |
-| Image Hosting | Cloudinary |
+| Database | MongoDB Atlas (Mongoose ODM) |
+| Image Hosting | Cloudinary (server-side upload) |
 | AI Style Analysis | Google Gemini API |
 | Vector Search | Backboard.io |
+| File Upload | Multer (memory storage) |
 
 ---
 
@@ -24,39 +46,42 @@ Express + TypeScript REST API powering the ClothesRent platform — a peer-to-pe
 backend/
 ├── src/
 │   ├── config/
-│   │   ├── database.ts          # Mongoose connection
-│   │   └── cloudinary.ts        # Cloudinary config loader
+│   │   ├── database.ts            # Mongoose connection
+│   │   └── cloudinary.ts          # Cloudinary SDK v2 init
 │   │
 │   ├── controllers/
-│   │   ├── listingController.ts # CRUD for clothing listings
-│   │   └── styleController.ts   # AI style analysis + search
+│   │   ├── listingController.ts   # Seller upload, CRUD, purchase
+│   │   └── styleController.ts     # AI style analysis + search
 │   │
 │   ├── middleware/
-│   │   └── authMiddleware.ts    # Auth0 JWT middleware (reserved)
+│   │   └── authMiddleware.ts      # Auth0 JWT (reserved, not active)
 │   │
 │   ├── models/
-│   │   ├── User.ts              # Mongoose User schema
-│   │   └── Listing.ts           # Mongoose Listing schema
+│   │   ├── User.ts                # User schema
+│   │   ├── UserItemSell.ts        # Seller listing schema
+│   │   ├── UserItemBuy.ts         # Purchase record schema
+│   │   └── Listing.ts             # Legacy (kept for reference)
 │   │
 │   ├── routes/
-│   │   ├── listingRoutes.ts     # /api/listings routes
-│   │   └── styleRoutes.ts       # /api/style routes
+│   │   ├── listingRoutes.ts       # /api/listings (with multer)
+│   │   └── styleRoutes.ts         # /api/style
 │   │
 │   ├── services/
-│   │   ├── geminiService.ts     # Google Gemini integration
-│   │   ├── cloudinaryService.ts # Cloudinary upload helpers
-│   │   └── backboardService.ts  # Backboard vector search
+│   │   ├── cloudinaryService.ts   # Server-side image upload
+│   │   ├── geminiService.ts       # AI keyword extraction (stub)
+│   │   └── backboardService.ts    # Vector search + link gen (stub)
 │   │
 │   ├── types/
-│   │   └── index.ts             # Shared TypeScript interfaces
+│   │   └── index.ts               # All TypeScript interfaces
 │   │
-│   ├── app.ts                   # Express app setup
-│   └── server.ts                # Entry point (DB connect + listen)
+│   ├── app.ts                     # Express app setup
+│   └── server.ts                  # Entry point
 │
-├── .env                         # Environment variables (not committed)
+├── .env                           # Environment variables (NOT committed)
 ├── .gitignore
 ├── package.json
 ├── tsconfig.json
+├── toImplement.md                 # Full spec document
 └── README.md
 ```
 
@@ -64,10 +89,11 @@ backend/
 
 ## Prerequisites
 
-- Node.js v18+
-- A [MongoDB Atlas](https://cloud.mongodb.com) cluster
-- (Optional) Cloudinary account for image uploads
-- (Optional) Google Gemini API key for AI style analysis
+- **Node.js** v18+
+- **MongoDB Atlas** cluster ([cloud.mongodb.com](https://cloud.mongodb.com))
+- **Cloudinary** account ([cloudinary.com](https://cloudinary.com))
+- (Optional) Google Gemini API key
+- (Optional) Backboard.io account
 
 ---
 
@@ -88,22 +114,22 @@ Create a `.env` file in the `backend/` directory:
 PORT=5000
 MONGO_URI=mongodb+srv://<username>:<password>@<cluster>.mongodb.net/?appName=Cluster0
 
-# Optional — needed for Cloudinary server-side upload
+# Cloudinary (required for image uploads)
 CLOUDINARY_CLOUD_NAME=your_cloud_name
 CLOUDINARY_API_KEY=your_api_key
 CLOUDINARY_API_SECRET=your_api_secret
 
-# Optional — needed for Gemini AI analysis
+# Optional — Google Gemini AI
 GEMINI_API_URL=https://generativelanguage.googleapis.com/...
 GEMINI_API_KEY=your_gemini_key
 ```
 
-> **Important:** If your MongoDB password contains special characters, URL-encode them.  
+> **Note:** If your MongoDB password contains special characters, URL-encode them.
 > Example: `p@ss!word` → `p%40ss%21word`
 
-### 3. MongoDB Atlas — allow network access
+### 3. MongoDB Atlas network access
 
-In your Atlas dashboard go to **Network Access** and add `0.0.0.0/0` to allow connections from any IP (or restrict to your server's IP in production).
+In your Atlas dashboard → **Network Access** → add `0.0.0.0/0` to allow connections from any IP (or restrict to your server IP in production).
 
 ---
 
@@ -118,8 +144,75 @@ npm run dev
 ### Production build
 
 ```bash
-npm run build   # compiles TypeScript → dist/
-npm start       # runs dist/server.js
+npm run build    # TypeScript → dist/
+npm start        # node dist/server.js
+```
+
+---
+
+## User Flows
+
+### Seller Upload Flow
+
+```
+Seller fills form on frontend
+        │
+        │  multipart/form-data: image, title, description, price, dailyRate, tags[]
+        ▼
+  POST /api/listings
+        │
+        ├── Validate required fields (title, description, price, image)
+        ├── Validate image format (jpg, png, webp)
+        ├── Upload image to Cloudinary → get cloudinaryUrl + publicId + auto-tags
+        ├── Check for duplicate publicId
+        ├── Generate Backboard vector link (bbLink) — optional
+        ├── Merge Cloudinary auto-tags with user tags
+        ├── Save UserItemSell document to MongoDB
+        │
+        ▼
+  Return { success: true, item: { ... } }
+```
+
+### Buyer Browse & Purchase Flow
+
+```
+Buyer browses listings
+        │
+  GET /api/listings?status=Live
+        │
+        ▼
+  Returns all live UserItemSell documents
+        │
+  Buyer selects an item
+        │
+  POST /api/listings/:id/purchase   { buyerId: "..." }
+        │
+        ├── Validate buyerId is provided
+        ├── Check item exists and is not already sold
+        ├── Prevent self-purchase (buyer ≠ seller)
+        ├── Create UserItemBuy record
+        ├── Mark UserItemSell status → "Sold"
+        │
+        ▼
+  Return { success: true, purchase: { ... } }
+```
+
+### Style Search Flow
+
+```
+Buyer enters style query: "minimalist oversized hoodie"
+        │
+  POST /api/style/search   { query: "minimalist oversized hoodie" }
+        │
+        ├── Query Backboard.io vector engine
+        │   (returns ranked listing IDs)
+        │
+        ├── If Backboard returns results → fetch from MongoDB
+        ├── If no results → fallback to MongoDB regex search
+        │   (searches title, description, tags)
+        │
+        ▼
+  Return array of matching UserItemSell documents
 ```
 
 ---
@@ -132,142 +225,270 @@ Base URL: `http://localhost:5000`
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET | `/api/health` | Returns `{ status: "ok" }` |
+| GET | `/api/health` | Returns `{ "status": "ok" }` |
 
 ---
 
-### Listings `/api/listings`
+### Listings — `/api/listings`
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/listings` | Get all listings (newest first) |
-| GET | `/api/listings/:id` | Get a single listing by ID |
-| POST | `/api/listings` | Create a new listing |
-| PUT | `/api/listings/:id` | Update a listing |
-| DELETE | `/api/listings/:id` | Delete a listing |
+| Method | Endpoint | Body / Query | Description |
+|--------|----------|-------------|-------------|
+| GET | `/api/listings` | `?status=Live` (optional) | Get all listings, newest first |
+| GET | `/api/listings/:id` | — | Get single listing by ID |
+| POST | `/api/listings` | `multipart/form-data` | Create listing (upload image) |
+| PUT | `/api/listings/:id` | JSON body | Update listing fields |
+| DELETE | `/api/listings/:id` | — | Delete a listing |
+| POST | `/api/listings/:id/purchase` | `{ "buyerId": "..." }` | Purchase an item |
 
-#### POST `/api/listings` — Request Body
+#### POST `/api/listings` — Create Listing
+
+Send as **multipart/form-data**:
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `image` | File | ✅ | Image file (jpg, png, webp) |
+| `title` | string | ✅ | Item title |
+| `description` | string | ✅ | Item description |
+| `price` | number | ✅ | Listing price |
+| `dailyRate` | number | No | Daily rental rate |
+| `tags[]` | string[] | No | User-supplied tags |
+| `sellerId` | string | No | Seller identifier |
+
+#### Response — Seller Upload Success
 
 ```json
 {
-  "title": "Obsidian Trench",
-  "description": "Minimalist oversized trench coat in black wool blend.",
-  "size": "M",
-  "imageUrl": "https://res.cloudinary.com/.../your-image.jpg",
-  "publicId": "clothesrent/abc123",
-  "cloudinaryTags": ["trench", "outerwear"],
-  "price": 485,
-  "dailyRate": 28
+  "success": true,
+  "item": {
+    "itemId": "64f123abc456",
+    "sellerId": "auth0|abc123",
+    "title": "Obsidian Trench",
+    "description": "Minimalist oversized trench coat",
+    "cloudinaryUrl": "https://res.cloudinary.com/xyz/image/upload/clothesrent/abc123.jpg",
+    "publicId": "clothesrent/abc123",
+    "tags": ["trench", "outerwear", "minimalist"],
+    "bbLink": "https://bb.io/v/abc123",
+    "status": "Live",
+    "createdAt": "2026-03-07T12:00:00.000Z",
+    "updatedAt": "2026-03-07T12:00:00.000Z"
+  }
 }
 ```
 
-#### Listing Response Shape
+#### POST `/api/listings/:id/purchase` — Purchase Item
 
 ```json
 {
-  "_id": "64f...",
-  "title": "Obsidian Trench",
-  "description": "...",
-  "size": "M",
-  "imageUrl": "...",
-  "publicId": "...",
-  "images": ["..."],
-  "cloudinaryTags": ["trench", "outerwear"],
-  "geminiKeywords": [],
-  "price": 485,
-  "dailyRate": 28,
-  "status": "Draft",
-  "views": 0,
-  "createdAt": "2026-03-07T12:00:00.000Z",
-  "updatedAt": "2026-03-07T12:00:00.000Z"
+  "buyerId": "auth0|buyer456"
 }
 ```
 
----
-
-### Style `/api/style`
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/style/analyze` | Analyze images with Gemini AI |
-| POST | `/api/style/search` | Search listings by style query |
-
-#### POST `/api/style/analyze` — Request Body
+#### Response — Purchase Success
 
 ```json
 {
-  "images": [
-    "https://res.cloudinary.com/.../image1.jpg",
-    "https://res.cloudinary.com/.../image2.jpg"
-  ]
+  "success": true,
+  "purchase": {
+    "purchaseId": "64f789def012",
+    "itemId": "64f123abc456",
+    "buyerId": "auth0|buyer456",
+    "title": "Obsidian Trench",
+    "price": 485,
+    "cloudinaryUrl": "https://res.cloudinary.com/xyz/image/upload/clothesrent/abc123.jpg",
+    "purchaseDate": "2026-03-07T13:00:00.000Z"
+  }
 }
 ```
 
-#### POST `/api/style/search` — Request Body
+---
+
+### Style — `/api/style`
+
+| Method | Endpoint | Body | Description |
+|--------|----------|------|-------------|
+| POST | `/api/style/analyze` | `{ "images": ["url1", "url2"] }` | Analyze images with Gemini AI |
+| POST | `/api/style/search` | `{ "query": "minimalist hoodie" }` | Search listings by style |
+
+#### POST `/api/style/search` — Response
+
+Returns array of `UserItemSell` documents matching the style query:
+
+```json
+[
+  {
+    "_id": "64f123abc456",
+    "title": "Obsidian Trench",
+    "description": "Minimalist oversized trench coat",
+    "cloudinaryUrl": "https://...",
+    "tags": ["trench", "outerwear"],
+    "price": 485,
+    "status": "Live",
+    ...
+  }
+]
+```
+
+---
+
+## MongoDB Collections
+
+### `useritemsells` (UserItemSell)
+
+| Field | Type | Required | Default | Description |
+|-------|------|----------|---------|-------------|
+| `sellerId` | String | No | `""` | Auth0 ID or user identifier |
+| `title` | String | ✅ | — | Item title |
+| `description` | String | ✅ | — | Item description |
+| `price` | Number | ✅ | — | Sale/rental price |
+| `dailyRate` | Number | No | `0` | Daily rental rate |
+| `cloudinaryUrl` | String | ✅ | — | Cloudinary secure URL |
+| `publicId` | String | ✅ | — | Cloudinary public ID (unique) |
+| `tags` | String[] | No | `[]` | Combined user + auto tags |
+| `bbLink` | String | No | — | Backboard vector search link |
+| `status` | String | No | `"Live"` | `Draft` \| `Live` \| `Paused` \| `Sold` |
+| `createdAt` | Date | Auto | — | Mongoose timestamp |
+| `updatedAt` | Date | Auto | — | Mongoose timestamp |
+
+### `useritembys` (UserItemBuy)
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `itemId` | String | ✅ | Reference to UserItemSell `_id` |
+| `buyerId` | String | ✅ | Auth0 ID or user identifier |
+| `sellerId` | String | No | Copied from the listing |
+| `purchaseDate` | Date | Auto | Date of purchase |
+| `cloudinaryUrl` | String | ✅ | Item image URL |
+| `title` | String | ✅ | Item title |
+| `price` | Number | ✅ | Purchase price |
+| `tags` | String[] | No | Copied from listing |
+
+### `users` (User)
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `auth0Id` | String | ✅ | Unique Auth0 identifier |
+| `email` | String | No | User email |
+| `username` | String | No | Display name |
+| `backboardProfileRef` | String | No | Backboard profile ID |
+| `styleProfileJSON` | Object | No | Stored style preferences |
+
+---
+
+## Services & Integrations
+
+### Cloudinary — ✅ Implemented
+
+- Server-side upload via `cloudinaryService.ts`
+- Uses `multer` memory storage to receive file from frontend
+- Uploads to `clothesrent/` folder in Cloudinary
+- Returns `{ url, publicId, tags }` — auto-tagging enabled (`auto_tagging: 0.6`)
+- Validates image format (jpg, jpeg, png, webp)
+
+### Backboard.io — 🔧 Stub
+
+- `searchByStyle(query)` — returns matching listing IDs (vector similarity)
+- `generateBBLink(imageUrl, title, description)` — generates vector link for new listing
+- Currently returns empty/null; implement when Backboard API is ready
+
+### Google Gemini — 🔧 Stub
+
+- `analyzeStyle(images)` — extracts style keywords from images
+- Currently returns `{ keywords: [], style: "unknown" }`
+- Add `GEMINI_API_URL` + `GEMINI_API_KEY` to `.env` to activate
+
+### Auth0 — ⏸ Reserved
+
+- Middleware scaffolded in `middleware/authMiddleware.ts`
+- Not active per current requirements
+- Enable by importing and adding to route middleware chain
+
+---
+
+## Validation & Edge Cases
+
+| Validation | Endpoint | Behavior |
+|------------|----------|----------|
+| Missing title/description/price | `POST /api/listings` | 400 error |
+| Missing image file | `POST /api/listings` | 400 error |
+| Invalid image format | `POST /api/listings` | 500 with descriptive message |
+| Duplicate `publicId` | `POST /api/listings` | 409 Conflict |
+| Missing `buyerId` | `POST /:id/purchase` | 400 error |
+| Item already sold | `POST /:id/purchase` | 410 Gone |
+| Buyer = Seller | `POST /:id/purchase` | 400 error |
+| Listing not found | `GET/PUT/DELETE /:id` | 404 error |
+| Cloudinary failure | `POST /api/listings` | 500 with error message |
+
+---
+
+## Error Response Format
+
+All errors return:
 
 ```json
 {
-  "query": "minimalist oversized hoodie"
+  "error": "Human-readable error message"
 }
 ```
 
-Returns an array of matching `Listing` documents. Falls back to MongoDB text search if Backboard returns no results.
+---
+
+## Testing with cURL
+
+### Create a listing
+
+```bash
+curl -X POST http://localhost:5000/api/listings \
+  -F "image=@./trench-coat.jpg" \
+  -F "title=Obsidian Trench" \
+  -F "description=Minimalist oversized trench coat in black wool blend" \
+  -F "price=485" \
+  -F "dailyRate=28" \
+  -F "tags[]=trench" \
+  -F "tags[]=outerwear" \
+  -F "sellerId=seller123"
+```
+
+### Get all live listings
+
+```bash
+curl http://localhost:5000/api/listings?status=Live
+```
+
+### Purchase an item
+
+```bash
+curl -X POST http://localhost:5000/api/listings/ITEM_ID/purchase \
+  -H "Content-Type: application/json" \
+  -d '{"buyerId": "buyer456"}'
+```
+
+### Search by style
+
+```bash
+curl -X POST http://localhost:5000/api/style/search \
+  -H "Content-Type: application/json" \
+  -d '{"query": "minimalist oversized hoodie"}'
+```
+
+### Health check
+
+```bash
+curl http://localhost:5000/api/health
+```
 
 ---
 
-## Data Models
+## Frontend Integration Notes
 
-### User
+The frontend (`clothesrent/`) at `http://localhost:5173` connects to this backend at `http://localhost:5000`. CORS is enabled.
 
-| Field | Type | Notes |
-|-------|------|-------|
-| `auth0Id` | String | Required, unique |
-| `email` | String | |
-| `username` | String | |
-| `backboardProfileRef` | String | Backboard vector profile ID |
-| `styleProfileJSON` | Object | Stored style preferences |
+**Seller upload page** (`/shop/new-listing`):
+- Currently uploads directly to Cloudinary from the browser
+- To use the backend flow instead: submit the form as `multipart/form-data` to `POST /api/listings` with the image file
 
-### Listing
+**Shop page** (`/shop`):
+- Fetch listings via `GET /api/listings?status=Live`
+- Purchase via `POST /api/listings/:id/purchase`
 
-| Field | Type | Notes |
-|-------|------|-------|
-| `sellerId` | String | Auth0 user sub |
-| `title` | String | Required |
-| `description` | String | Required |
-| `size` | String | Required (XS/S/M/L/XL/One Size) |
-| `imageUrl` | String | Primary image URL (Cloudinary) |
-| `publicId` | String | Cloudinary public ID |
-| `images` | String[] | All image URLs |
-| `cloudinaryTags` | String[] | Auto-tags from Cloudinary |
-| `geminiKeywords` | String[] | AI-extracted style keywords |
-| `price` | Number | Purchase/rental price |
-| `dailyRate` | Number | Daily rental rate |
-| `status` | String | `Draft` \| `Live` \| `Paused` |
-| `views` | Number | View count |
-
----
-
-## Frontend Integration
-
-The frontend (`clothesrent/`) connects to this backend at `http://localhost:5000`.
-
-**Seller upload flow:**
-1. Frontend uploads image directly to Cloudinary via `UploadPhotoButton`
-2. On form submit, `POST /api/listings` with the Cloudinary URL + listing details
-
-**Buyer search flow:**
-1. Frontend sends `POST /api/style/search` with a style query string
-2. Backend queries Backboard (vector) → falls back to MongoDB text search
-3. Returns ranked listing array to display
-
----
-
-## External Services Integration Status
-
-| Service | Status | Notes |
-|---------|--------|-------|
-| MongoDB | ✅ Connected | Via Mongoose |
-| Cloudinary | 🔧 Stub | Frontend uploads direct; server helper ready in `cloudinaryService.ts` |
-| Google Gemini | 🔧 Stub | Add `GEMINI_API_URL` + key in `.env`, implement in `geminiService.ts` |
-| Backboard.io | 🔧 Stub | Implement in `backboardService.ts` |
-| Auth0 | ⏸ Reserved | Middleware scaffolded in `middleware/authMiddleware.ts` |
+**Style search**:
+- `POST /api/style/search` with `{ query: "..." }`
