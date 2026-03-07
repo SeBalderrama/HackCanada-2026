@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState, type ChangeEvent } from "react";
 import "./locationAutocompleteInput.css";
+import { formatSimpleAddress, type NominatimAddress } from "../utils/location";
 
 type Suggestion = {
   id: string;
@@ -17,27 +18,9 @@ interface Props {
 
 function toSimplifiedAddress(entry: {
   display_name: string;
-  address?: {
-    house_number?: string;
-    road?: string;
-    postcode?: string;
-    city?: string;
-    town?: string;
-    village?: string;
-    county?: string;
-    state?: string;
-    country?: string;
-  };
+  address?: NominatimAddress;
 }): string {
-  const address = entry.address;
-  if (!address) return entry.display_name;
-
-  const street = [address.house_number, address.road].filter(Boolean).join(" ").trim();
-  const postal = address.postcode?.trim() ?? "";
-  const city = (address.city || address.town || address.village || address.county || address.state || "").trim();
-  const country = (address.country || "").trim();
-
-  const main = [street, postal, city, country].filter(Boolean).join(", ");
+  const main = formatSimpleAddress(entry.address);
   return main || entry.display_name;
 }
 
@@ -79,17 +62,7 @@ export default function LocationAutocompleteInput({
         const data = (await response.json()) as Array<{
           place_id: number;
           display_name: string;
-          address?: {
-            house_number?: string;
-            road?: string;
-            postcode?: string;
-            city?: string;
-            town?: string;
-            village?: string;
-            county?: string;
-            state?: string;
-            country?: string;
-          };
+          address?: NominatimAddress;
         }>;
         const nextSuggestions = data.map((entry) => ({
           id: String(entry.place_id),

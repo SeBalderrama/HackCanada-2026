@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from "react";
 import { useAuth0 } from "@auth0/auth0-react";
 import { CircleMarker, MapContainer, Popup, TileLayer, useMap } from "react-leaflet";
 import "./App.css";
-import { UploadPhotoButton } from "./components/uploadPhotoButton";
 import ShopPage from "./pages/shopPage";
 import SellerUploadPosting from "./pages/sellerUploadPosting";
 import ProfilePage from "./pages/profilePage";
@@ -98,9 +97,7 @@ const PRODUCTS: Product[] = [
 ];
 
 const FOOTER_LINKS: Record<string, string[]> = {
-  Shop: ["New Arrivals", "Women", "Men", "Accessories", "Sale"],
-  Help: ["Size Guide", "Shipping", "Returns", "Contact Us", "FAQ"],
-  Brand: ["Our Story", "Sustainability", "Press", "Careers", "Stockists"],
+  Navigate: ["Home", "Shop", "Profile", "Sign In"],
 };
 
 const NEARBY_RENTAL_SPOTS = [
@@ -403,6 +400,14 @@ function NearbyMapSection() {
 }
 
 function Footer() {
+  const toHref = (link: string) => {
+    if (link === "Home") return "/";
+    if (link === "Shop") return "/shop";
+    if (link === "Profile") return "/profile";
+    if (link === "Sign In") return "/signin";
+    return "#";
+  };
+
   return (
     <footer>
       <div className="footer-grid">
@@ -426,7 +431,7 @@ function Footer() {
           <div key={heading}>
             <div className="footer-col-head">{heading}</div>
             {links.map((link) => (
-              <a key={link} href="#" className="footer-link">
+              <a key={link} href={toHref(link)} className="footer-link">
                 {link}
               </a>
             ))}
@@ -450,9 +455,6 @@ function Footer() {
       </div>
     </footer>
   );
-}
-function UploadImage() {
-  return <UploadPhotoButton />;
 }
 
 function SignInPage() {
@@ -551,7 +553,6 @@ function LandingPage() {
         <div className="divider" />
       </main>
       <Footer />
-      <UploadImage />
     </>
   );
 }

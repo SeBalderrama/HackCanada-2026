@@ -91,3 +91,21 @@
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
+
+.profile-location-row {
+  margin-top: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.profile-location-btn {
+  width: fit-content;
+  font-size: 0.66rem;
+  padding: 0.55rem 0.9rem;
+}
+
+.profile-location-message {
+  color: var(--warm-grey);
+  font-size: 0.76rem;
+}

@@ -7,6 +7,7 @@ import { DEFAULT_TRANSFORMATIONS } from "../types/listing";
 import ImageTransformPanel from "../components/ImageTransformPanel";
 import LocationAutocompleteInput from "../components/LocationAutocompleteInput";
 import { buildDisplayUrl } from "../utils/cloudinaryUrl";
+import { loadUserProfile, type UserProfileData } from "../utils/profileStorage";
 import "./sellerUploadPosting.css";
 
 type ListingDraft = {
@@ -59,6 +60,7 @@ export default function SellerUploadPosting() {
   const [submitting, setSubmitting] = useState(false);
   const [submitMessage, setSubmitMessage] = useState<string | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [locationMessage, setLocationMessage] = useState<string | null>(null);
 
   const canSubmit = useMemo(() => {
     return Boolean(
@@ -191,6 +193,28 @@ export default function SellerUploadPosting() {
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const handleUseProfileLocation = () => {
+    if (!user?.sub) {
+      setLocationMessage("Please sign in to use profile location.");
+      return;
+    }
+
+    const fallback: UserProfileData = {
+      name: user?.name ?? user?.nickname ?? "",
+      style: "",
+      picture: user?.picture ?? "",
+      location: "",
+    };
+    const profile = loadUserProfile(user.sub, fallback);
+    if (!profile.location.trim()) {
+      setLocationMessage("No profile location saved yet.");
+      return;
+    }
+
+    setDraft((prev) => ({ ...prev, location: profile.location }));
+    setLocationMessage("Location filled from profile.");
   };
 
   // ── Step Indicator ──
@@ -457,9 +481,21 @@ export default function SellerUploadPosting() {
                   inputClassName="seller-field-input"
                   placeholder="e.g. 100 Queen St W, Toronto"
                   value={draft.location}
-                  onChange={(next) => setDraft((p) => ({ ...p, location: next }))}
+                  onChange={(next) => {
+                    setDraft((p) => ({ ...p, location: next }));
+                    setLocationMessage(null);
+                  }}
                   required
                 />
+                <button
+                  type="button"
+                  className="btn-outline seller-location-btn"
+                  onClick={handleUseProfileLocation}>
+                  Use Profile Location
+                </button>
+                {locationMessage && (
+                  <p className="seller-location-message">{locationMessage}</p>
+                )}
               </section>
 
               <div className="seller-step-nav" style={{ marginTop: "0.5rem" }}>

@@ -107,7 +107,7 @@ clothesrent/
 - **Product Carousel** — auto-scrolling marquee of featured rental items with hover-pause, manual arrow navigation, and "Reserve" overlay buttons
 - **Nearby Rental Map** — Leaflet map centered on Toronto showing rental pickup points with circle markers and popup ETAs
 - **Footer** — brand info, shop/help/brand link columns, social links
-- **Navbar** - fixed top nav with brand + Home + Shop, a placeholder search bar that writes ?q= in URL for future search integration, and auth-aware actions (Sign In becomes Profile + Sign Out when authenticated)
+- **Navbar** - fixed top nav with brand + Home + Shop, a placeholder search bar that writes ?q= in URL for future search integration, and auth-aware actions (Sign In becomes Profile + Sign Out when authenticated). Navbar z-index stays above map layers while scrolling
 
 ### 2. Seller Dashboard (`/shop`)
 
@@ -177,6 +177,7 @@ Three-step interactive listing creator with live AI transformation preview:
 - Title, description, price (required)
 - Daily rate, comma-separated tags (optional)
 - Location address (required) with type-ahead address suggestions (address, postal code, city, country)
+- "Use Profile Location" button to prefill listing location from saved profile
 - **Auth0 `user.sub`** automatically sent as `sellerId`
 - Preview image shows the **transformed version** (Cloudinary URL with all step-2 transformations applied)
 - **Details preview loading overlay** appears while the final transformed image is still loading
@@ -195,6 +196,7 @@ Three-step interactive listing creator with live AI transformation preview:
 
 - Protected page for authenticated users
 - Displays profile picture, name, style, and location (with type-ahead suggestions (address, postal code, city, country))
+- "Use Current Location" button asks browser permission and reverse-fills the address
 - Profile picture can be changed via local image upload
 - Name/style and custom picture are saved in local storage per Auth0 user
 - Style can also be updated from Shop -> Personalize and appears here automatically
@@ -237,7 +239,7 @@ All backend communication is centralized in two files:
 | `Navbar` | `navBar.tsx` | — | Top nav with brand, Home/Shop links, a placeholder search form, and auth-aware actions (Sign In or Profile + Sign Out). Adds `scrolled` class on scroll |
 | `CloudinaryImage` | `CloudinaryImage.tsx` | `publicId, alt, width, height, className` | Renders optimized Cloudinary image via `@cloudinary/react` |
 | `ImageTransformPanel` | `ImageTransformPanel.tsx` | `cloudinaryUrl, onChange` | Interactive AI transformation controls with live before/after preview |
-| `UploadPhotoButton` | `uploadPhotoButton.tsx` | `onUploadSuccess, onUploadError, buttonLabel, uploadPreset` | Direct-to-Cloudinary browser upload with XHR progress bar |
+| `UploadPhotoButton` | `uploadPhotoButton.tsx` | `onUploadSuccess, onUploadError, buttonLabel, uploadPreset` | Direct-to-Cloudinary browser upload utility (not mounted on homepage) |
 | `ListingsPanel` | `ListingsPanel.tsx` | `userId: string` | Seller's listing management — applies stored transformations to display images |
 | `TransactionsPanel` | `TransactionsPanel.tsx` | `userId: string` | Purchase history — shows buyer/seller role pill, Cloudinary thumbnails |
 | `ThriftOutPanel` | `ThriftOutPanel.tsx` | `userId: string` | Browse live listings — applies stored transformations + conditional badges, Auth0-powered purchase |
@@ -468,6 +470,10 @@ All images served through Cloudinary's CDN with transformations applied via URL 
 Display components (`ListingsPanel`, `ThriftOutPanel`) read the `listing.transformations` field from the database and pass it to `buildDisplayUrl()` so the seller's chosen enhancements are applied consistently everywhere the image is shown.
 
 Grid cards are capped at `max-width: 320px` with `auto-fill` layout (no stretching on wide screens). All images use `loading="lazy"` for deferred loading below the fold.
+
+
+
+
 
 
 
