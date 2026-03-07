@@ -5,6 +5,7 @@ import "./App.css";
 import ShopPage from "./pages/shopPage";
 import SellerUploadPosting from "./pages/sellerUploadPosting";
 import ProfilePage from "./pages/profilePage";
+import OutfitPage from "./pages/outfitPage";
 import {
   loadUserProfile,
   PROFILE_UPDATED_EVENT,
@@ -573,6 +574,10 @@ export default function App({
 
   if (path === "/profile") {
     return <ProfilePage />;
+  }
+
+  if (path === "/outfit" || path === "/wardrobe") {
+    return <OutfitPage />;
   }
 
   return <LandingPage recommendations={recommendations} onClearRecommendations={onClearRecommendations} />;

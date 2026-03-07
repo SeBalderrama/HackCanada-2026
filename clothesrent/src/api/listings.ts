@@ -94,6 +94,25 @@ export async function recommendFromPrompt(
   });
 }
 
+export interface OutfitItem {
+  listingId: string;
+  listing: Listing;
+  slot: string;
+  reason: string;
+}
+
+export async function generateOutfit(
+  prompt: string
+): Promise<{ items: OutfitItem[]; stylistNote: string }> {
+  return apiFetch<{ items: OutfitItem[]; stylistNote: string }>(
+    "/api/outfit/generate",
+    {
+      method: "POST",
+      body: JSON.stringify({ prompt }),
+    }
+  );
+}
+
 export async function getUserStyle(
   auth0Id: string
 ): Promise<{ prompt: string; descriptions: string[] }> {
