@@ -51,7 +51,14 @@ export default function Navbar({
         </button>
 
         <div className="nav-auth-actions">
-          <a href={isAuthenticated ? "/profile" : "/signin"} className="btn-outline nav-signin nav-signin-link">
+          {isAuthenticated && user && (
+            <p className="text-decoration: underline">
+              Signed in as <strong>{user.nickname ?? user.email}</strong>
+            </p>
+          )}
+          <a
+            href={isAuthenticated ? "/profile" : "/signin"}
+            className="btn-outline nav-signin nav-signin-link">
             {isAuthenticated ? "Profile" : "Sign In"}
           </a>
           {isAuthenticated && (
@@ -60,7 +67,9 @@ export default function Navbar({
               className="btn-outline nav-signin"
               onClick={() =>
                 logout({
-                  logoutParams: { returnTo: `${window.location.origin}/signin` },
+                  logoutParams: {
+                    returnTo: `${window.location.origin}/signin`,
+                  },
                 })
               }>
               Sign Out

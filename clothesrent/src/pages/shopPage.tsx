@@ -9,7 +9,7 @@ import "./shopPage.css";
 type ShopView = "listings" | "transactions" | "thriftOut" | "personalize";
 
 export default function ShopPage() {
-  const { user, isAuthenticated } = useAuth0();
+  const { user } = useAuth0();
   const [activeView, setActiveView] = useState<ShopView>("thriftOut");
 
   const userId = user?.sub ?? "";
@@ -18,14 +18,9 @@ export default function ShopPage() {
     <main className="shop-page">
       <div className="shop-layout">
         <aside className="shop-sidebar">
-          <p className="shop-sidebar-label">Seller Dashboard</p>
+          {/* <p className="shop-sidebar-label">Seller Dashboard</p> */}
           <h1 className="font-display shop-sidebar-title">Shop Control</h1>
 
-          {isAuthenticated && user && (
-            <p className="shop-sidebar-user">
-              Signed in as <strong>{user.nickname ?? user.email}</strong>
-            </p>
-          )}
           <button
             type="button"
             className={`shop-nav-btn${activeView === "thriftOut" ? " active" : ""}`}
