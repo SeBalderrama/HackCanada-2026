@@ -309,40 +309,6 @@ function NearbyMapSection() {
   )
 }
 
-function NearbyMapSection() {
-  return (
-    <section className="map-section">
-      <div className="map-section-head">
-        <div className="section-eyebrow map-eyebrow">Map View</div>
-        <h3 className="font-display map-title">
-          Rentals Around <em>You</em>
-        </h3>
-        <p className="map-subtitle">Frontend-only placeholder map for nearby inventory. Plug in geolocation logic later.</p>
-      </div>
-
-      <div className="map-shell">
-        <MapContainer center={[43.6518, -79.3832]} zoom={13} scrollWheelZoom={false} className="leaflet-map">
-          <TileLayer attribution='&copy; OpenStreetMap contributors' url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-          {NEARBY_RENTAL_SPOTS.map((spot) => (
-            <CircleMarker
-              key={spot.id}
-              center={[spot.lat, spot.lng]}
-              radius={9}
-              pathOptions={{ color: '#251f33', fillColor: '#7dd6c1', fillOpacity: 0.95, weight: 2 }}
-            >
-              <Popup>
-                <strong>{spot.name}</strong>
-                <br />
-                Pickup ETA: {spot.eta}
-              </Popup>
-            </CircleMarker>
-          ))}
-        </MapContainer>
-      </div>
-    </section>
-  );
-}
-
 function Footer() {
   return (
     <footer>
