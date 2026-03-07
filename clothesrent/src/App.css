@@ -236,6 +236,10 @@ body {
   font-size: 0.68rem;
 }
 
+.nav-signin-link {
+  text-decoration: none;
+}
+
 .hero-img-frame {
   width: 72%;
   aspect-ratio: 3 / 4;
@@ -594,6 +598,75 @@ footer {
   margin-bottom: 0;
 }
 
+.auth-page {
+  min-height: 100vh;
+  background: linear-gradient(140deg, var(--cream) 0%, var(--parchment) 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1.5rem;
+}
+
+.auth-card {
+  width: min(680px, 100%);
+  background: rgb(247 244 239 / 90%);
+  border: 1px solid rgb(28 28 28 / 10%);
+  box-shadow: 0 24px 50px rgb(28 28 28 / 9%);
+  padding: 2rem;
+}
+
+.auth-home-link {
+  color: var(--warm-grey);
+  text-transform: uppercase;
+  font-size: 0.65rem;
+  letter-spacing: 0.16em;
+  text-decoration: none;
+}
+
+.auth-title {
+  font-size: clamp(2rem, 4vw, 2.8rem);
+  font-weight: 300;
+  margin-top: 0.5rem;
+  margin-bottom: 0.8rem;
+}
+
+.auth-subtitle {
+  color: var(--warm-grey);
+  font-size: 0.8rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-top: 1rem;
+}
+
+.auth-error {
+  color: #8f1d1d;
+  margin-top: 0.5rem;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+}
+
+.auth-actions {
+  margin-top: 1.4rem;
+  display: flex;
+  gap: 0.9rem;
+  flex-wrap: wrap;
+}
+
+.auth-btn {
+  min-width: 140px;
+}
+
+.auth-pre {
+  margin-top: 1rem;
+  padding: 1rem;
+  background: rgb(28 28 28 / 4%);
+  border: 1px solid rgb(28 28 28 / 10%);
+  max-height: 320px;
+  overflow: auto;
+  font-size: 0.78rem;
+  line-height: 1.5;
+}
+
 @keyframes fadeUp {
   from {
     opacity: 0;
@@ -670,5 +743,17 @@ footer {
   .footer-bottom {
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  .auth-card {
+    padding: 1.4rem;
+  }
+
+  .auth-actions {
+    flex-direction: column;
+  }
+
+  .auth-btn {
+    width: 100%;
   }
 }

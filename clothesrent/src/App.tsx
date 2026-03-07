@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useAuth0 } from '@auth0/auth0-react'
 import './App.css'
 
 type Product = {
@@ -39,7 +40,7 @@ function Navbar() {
 
   return (
     <nav className={`navbar${scrolled ? ' scrolled' : ''}`}>
-      <a href="#" className="brand">
+      <a href="/" className="brand">
         MAISON ORE
       </a>
 
@@ -51,7 +52,9 @@ function Navbar() {
         ))}
       </div>
 
-      <button className="btn-outline nav-signin">Sign In</button>
+      <a href="/signin" className="btn-outline nav-signin nav-signin-link">
+        Sign In
+      </a>
     </nav>
   )
 }
@@ -205,7 +208,64 @@ function Footer() {
   )
 }
 
-export default function App() {
+function SignInPage() {
+  const { isLoading, isAuthenticated, error, loginWithRedirect: login, logout: auth0Logout, user } = useAuth0()
+
+  const signup = () => login({ authorizationParams: { screen_hint: 'signup' } })
+
+  const logout = () => auth0Logout({ logoutParams: { returnTo: `${window.location.origin}/signin` } })
+
+  if (isLoading) {
+    return (
+      <main className="auth-page">
+        <section className="auth-card">
+          <h1 className="font-display auth-title">Loading...</h1>
+        </section>
+      </main>
+    )
+  }
+
+  if (isAuthenticated) {
+    return (
+      <main className="auth-page">
+        <section className="auth-card">
+          <a href="/" className="auth-home-link">
+            Back to Home
+          </a>
+          <p className="auth-subtitle">Logged in as {user?.email ?? 'your account'}</p>
+          <h1 className="font-display auth-title">User Profile</h1>
+          <pre className="auth-pre">{JSON.stringify(user, null, 2)}</pre>
+          <button type="button" className="btn-primary auth-btn" onClick={logout}>
+            Logout
+          </button>
+        </section>
+      </main>
+    )
+  }
+
+  return (
+    <main className="auth-page">
+      <section className="auth-card">
+        <a href="/" className="auth-home-link">
+          Back to Home
+        </a>
+        <p className="auth-subtitle">Maison Ore Account</p>
+        <h1 className="font-display auth-title">Sign In</h1>
+        {error && <p className="auth-error">Error: {error.message}</p>}
+        <div className="auth-actions">
+          <button type="button" className="btn-primary auth-btn" onClick={signup}>
+            Signup
+          </button>
+          <button type="button" className="btn-outline auth-btn" onClick={() => login()}>
+            Login
+          </button>
+        </div>
+      </section>
+    </main>
+  )
+}
+
+function LandingPage() {
   return (
     <>
       <Navbar />
@@ -217,4 +277,8 @@ export default function App() {
       <Footer />
     </>
   )
+}
+
+export default function App() {
+  return window.location.pathname === '/signin' ? <SignInPage /> : <LandingPage />
 }
