@@ -564,7 +564,7 @@ export default function App({
         }
       } catch {
         if (!cancelled) {
-          setMustSetProfileName(true);
+          setMustSetProfileName(false);
         }
       } finally {
         if (!cancelled) {
