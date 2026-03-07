@@ -10,6 +10,8 @@ const SLOT_LABELS: Record<string, string> = {
   accessory: "Accessory",
   dress: "Dress",
   fullbody: "Full Body",
+  hat: "Hat",
+  bag: "Bag",
 };
 
 export default function OutfitPage() {
@@ -91,13 +93,13 @@ export default function OutfitPage() {
             {outfitItems.map((item) => {
               const imgUrl = item.listing.cloudinaryUrl
                 ? buildDisplayUrl(item.listing.cloudinaryUrl, {
-                    width: 400,
-                    height: 533,
-                    removeBg: item.listing.transformations?.removeBg,
-                    replaceBg: item.listing.transformations?.replaceBg ?? undefined,
-                    badge: item.listing.transformations?.badge ?? undefined,
-                    badgeColor: item.listing.transformations?.badgeColor,
-                  })
+                  width: 400,
+                  height: 533,
+                  removeBg: item.listing.transformations?.removeBg,
+                  replaceBg: item.listing.transformations?.replaceBg ?? undefined,
+                  badge: item.listing.transformations?.badge ?? undefined,
+                  badgeColor: item.listing.transformations?.badgeColor,
+                })
                 : "";
 
               return (
