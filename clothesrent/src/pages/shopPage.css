@@ -1,0 +1,358 @@
+.shop-page {
+  margin-top: 68px;
+  min-height: calc(100vh - 68px);
+  padding: 2rem 2rem 2.5rem;
+}
+
+.shop-layout {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+.shop-sidebar {
+  position: sticky;
+  top: 84px;
+  background: rgb(247 244 239 / 88%);
+  border: 1px solid rgb(37 31 51 / 10%);
+  box-shadow: 0 14px 30px rgb(37 31 51 / 8%);
+  padding: 1.25rem;
+}
+
+.shop-sidebar-label {
+  font-size: 0.62rem;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  color: var(--warm-grey);
+}
+
+.shop-sidebar-title {
+  margin-top: 0.35rem;
+  margin-bottom: 1rem;
+  font-size: 1.9rem;
+  font-weight: 300;
+  color: var(--ink);
+}
+
+.shop-nav-btn {
+  width: 100%;
+  display: block;
+  text-align: left;
+  margin-bottom: 0.55rem;
+  padding: 0.8rem 0.85rem;
+  border: 1px solid rgb(37 31 51 / 14%);
+  background: transparent;
+  color: var(--ink);
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.shop-nav-btn:hover,
+.shop-nav-btn.active {
+  background: var(--ink);
+  color: var(--cream);
+  border-color: var(--ink);
+}
+
+.shop-content {
+  background: rgb(247 244 239 / 88%);
+  border: 1px solid rgb(37 31 51 / 10%);
+  box-shadow: 0 18px 34px rgb(37 31 51 / 9%);
+  padding: 1.25rem;
+  min-height: 460px;
+}
+
+.shop-content-title {
+  font-size: clamp(2rem, 3.2vw, 2.8rem);
+  font-weight: 300;
+  color: var(--ink);
+  margin-bottom: 1rem;
+}
+
+.shop-section-subtitle {
+  color: var(--warm-grey);
+  margin-bottom: 1rem;
+  letter-spacing: 0.03em;
+}
+
+.shop-listings-toolbar {
+  margin-bottom: 0.9rem;
+}
+
+.shop-create-link {
+  font-size: 0.66rem;
+  padding: 0.7rem 1.15rem;
+  text-decoration: none;
+}
+
+.shop-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 280px));
+  gap: 0.9rem;
+}
+
+.shop-card {
+  border: 1px solid rgb(37 31 51 / 12%);
+  background: #fff;
+  padding: 0.95rem;
+}
+
+.shop-card-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.55rem;
+  align-items: start;
+}
+
+.shop-card-title {
+  font-family: "Cormorant Garamond", serif;
+  color: var(--ink);
+  font-weight: 400;
+  font-size: 1.15rem;
+}
+
+.shop-card-rate {
+  margin-top: 0.35rem;
+  margin-bottom: 0.2rem;
+  color: var(--ink);
+  letter-spacing: 0.04em;
+  font-weight: 400;
+}
+
+.shop-card-meta {
+  color: var(--warm-grey);
+  font-size: 0.78rem;
+  letter-spacing: 0.03em;
+}
+
+.shop-pill {
+  display: inline-block;
+  padding: 0.22rem 0.52rem;
+  font-size: 0.62rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  border: 1px solid transparent;
+}
+
+.shop-pill-live,
+.shop-pill-completed {
+  background: rgb(125 214 193 / 22%);
+  color: #166052;
+  border-color: rgb(125 214 193 / 48%);
+}
+
+.shop-pill-draft,
+.shop-pill-pending,
+.shop-pill-paused,
+.shop-pill-in-progress {
+  background: rgb(37 31 51 / 8%);
+  color: var(--ink);
+  border-color: rgb(37 31 51 / 18%);
+}
+
+.shop-table-wrap {
+  overflow-x: auto;
+  border: 1px solid rgb(37 31 51 / 10%);
+}
+
+.shop-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+}
+
+.shop-table th,
+.shop-table td {
+  padding: 0.68rem 0.75rem;
+  border-bottom: 1px solid rgb(37 31 51 / 8%);
+  font-size: 0.78rem;
+  text-align: left;
+}
+
+.shop-table th {
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: var(--warm-grey);
+  font-weight: 400;
+  background: rgb(237 232 223 / 30%);
+}
+
+@media (max-width: 900px) {
+  .shop-page {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+
+  .shop-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .shop-sidebar {
+    position: static;
+  }
+}
+
+/* Card images */
+.shop-card-img-wrap {
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  overflow: hidden;
+  margin-bottom: 0.7rem;
+  background: rgb(237 232 223 / 40%);
+}
+
+.shop-card-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Tags */
+.shop-card-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-top: 0.45rem;
+}
+
+.shop-tag {
+  display: inline-block;
+  padding: 0.15rem 0.45rem;
+  font-size: 0.6rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  background: rgb(37 31 51 / 6%);
+  color: var(--ink);
+  border: 1px solid rgb(37 31 51 / 12%);
+}
+
+/* Daily rate helper */
+.shop-card-daily {
+  color: var(--warm-grey);
+  font-size: 0.82rem;
+}
+
+/* Card action buttons */
+.shop-card-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.7rem;
+}
+
+.shop-action-btn {
+  font-size: 0.64rem;
+  padding: 0.5rem 0.8rem;
+  cursor: pointer;
+}
+
+.shop-action-btn-danger {
+  color: #a33;
+  border-color: #a33;
+}
+
+.shop-action-btn-danger:hover {
+  background: #a33;
+  color: #fff;
+}
+
+/* Sold pill */
+.shop-pill-sold {
+  background: rgb(180 60 60 / 14%);
+  color: #a33;
+  border-color: rgb(180 60 60 / 35%);
+}
+
+/* Search bar */
+.shop-search-bar {
+  display: flex;
+  gap: 0.55rem;
+  margin-bottom: 1rem;
+  align-items: center;
+}
+
+.shop-search-input {
+  flex: 1;
+  padding: 0.7rem 0.85rem;
+  font-size: 0.82rem;
+  border: 1px solid rgb(37 31 51 / 18%);
+  background: #fff;
+  color: var(--ink);
+  outline: none;
+}
+
+.shop-search-input:focus {
+  border-color: var(--ink);
+}
+
+.shop-search-btn {
+  font-size: 0.64rem;
+  padding: 0.7rem 1rem;
+  white-space: nowrap;
+}
+
+/* Transaction table images — see consolidated rule below */
+
+.shop-table-id {
+  font-size: 0.72rem;
+  color: var(--warm-grey);
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Sidebar user info */
+.shop-sidebar-user {
+  font-size: 0.72rem;
+  color: var(--warm-grey);
+  letter-spacing: 0.03em;
+  margin-bottom: 0.9rem;
+  padding-bottom: 0.7rem;
+  border-bottom: 1px solid rgb(37 31 51 / 10%);
+}
+.shop-sidebar-user strong {
+  color: var(--ink);
+}
+
+/* "Your listing" pill in ThriftOut */
+.shop-pill-own {
+  background: rgb(37 31 51 / 8%);
+  color: var(--warm-grey);
+  border-color: rgb(37 31 51 / 18%);
+  font-style: italic;
+}
+
+/* Buyer / Seller role pills in transaction log */
+.shop-pill-buyer {
+  background: rgb(59 130 246 / 14%);
+  color: #1e40af;
+  border-color: rgb(59 130 246 / 35%);
+}
+
+.shop-pill-seller {
+  background: rgb(245 158 11 / 14%);
+  color: #92400e;
+  border-color: rgb(245 158 11 / 35%);
+}
+
+/* Constrain card max-width for very wide screens */
+.shop-card {
+  max-width: 320px;
+}
+
+/* Table thumbnail sizing */
+.shop-table-img {
+  width: 48px;
+  height: 48px;
+  object-fit: cover;
+  border: 1px solid rgb(37 31 51 / 10%);
+  border-radius: 2px;
+}
