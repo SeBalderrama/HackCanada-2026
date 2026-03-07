@@ -10,6 +10,7 @@ import {
   PROFILE_UPDATED_EVENT,
   type UserProfileData,
 } from "./utils/profileStorage";
+import { geocodeAddressToCoords } from "./utils/location";
 
 type Product = {
   id: number;
@@ -134,27 +135,6 @@ function MapRecenter({ center }: { center: [number, number] }) {
   }, [center, map]);
 
   return null;
-}
-
-async function geocodeAddress(address: string): Promise<{ lat: number; lng: number } | null> {
-  const trimmed = address.trim();
-  if (!trimmed) return null;
-
-  try {
-    const response = await fetch(
-      `https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&q=${encodeURIComponent(trimmed)}`,
-    );
-    if (!response.ok) return null;
-    const data = (await response.json()) as Array<{ lat: string; lon: string }>;
-    if (!data.length) return null;
-
-    const lat = Number(data[0].lat);
-    const lng = Number(data[0].lon);
-    if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
-    return { lat, lng };
-  } catch {
-    return null;
-  }
 }
 
 function ProductCard({ product }: { product: Product }) {
@@ -298,7 +278,7 @@ function NearbyMapSection() {
         return;
       }
 
-      const coords = await geocodeAddress(profile.location);
+      const coords = await geocodeAddressToCoords(profile.location);
       if (cancelled || !coords) return;
 
       setUserMapSpot({

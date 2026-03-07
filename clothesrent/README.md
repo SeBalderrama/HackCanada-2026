@@ -137,6 +137,8 @@ Four-tab sidebar layout. Displays the signed-in user's nickname/email. All tabs 
 - Fetches live listings from `GET /api/listings?status=Live`
 - **Style search bar** — searches via `POST /api/style/search` (Backboard vector → MongoDB fallback)
 - Clear button to reset to all live listings
+- **Price filters** — min/max price filter inputs
+- **Proximity filter** — "Near Me" toggle using saved profile location + selectable radius
 - **Auth0-powered purchases** — uses signed-in user's Auth0 ID as `buyerId` (no manual prompt)
 - **"Your listing" pill** shown on items where `sellerId === userId` — purchase button hidden
 - **Conditional "NEW" badge** — items created within the last 24 hours display a red "NEW" overlay via Cloudinary URL transformation

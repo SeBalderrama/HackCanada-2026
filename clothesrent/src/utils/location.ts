@@ -21,6 +21,28 @@ export function formatSimpleAddress(address?: NominatimAddress): string {
   return [street, postal, city, country].filter(Boolean).join(", ");
 }
 
+export async function geocodeAddressToCoords(
+  address: string,
+): Promise<{ lat: number; lng: number } | null> {
+  const trimmed = address.trim();
+  if (!trimmed) return null;
+
+  try {
+    const response = await fetch(
+      `https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&q=${encodeURIComponent(trimmed)}`,
+    );
+    if (!response.ok) return null;
+    const data = (await response.json()) as Array<{ lat: string; lon: string }>;
+    if (!data.length) return null;
+    const lat = Number(data[0].lat);
+    const lng = Number(data[0].lon);
+    if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+    return { lat, lng };
+  } catch {
+    return null;
+  }
+}
+
 export async function reverseGeocodeToSimpleAddress(
   latitude: number,
   longitude: number,

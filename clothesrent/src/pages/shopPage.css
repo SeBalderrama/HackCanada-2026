@@ -304,6 +304,47 @@
   white-space: nowrap;
 }
 
+.shop-filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  align-items: end;
+  margin-bottom: 1rem;
+}
+
+.shop-filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.shop-filter-label {
+  font-size: 0.62rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--warm-grey);
+}
+
+.shop-filter-input {
+  border: 1px solid rgb(37 31 51 / 16%);
+  background: #fff;
+  color: var(--ink);
+  font-size: 0.75rem;
+  padding: 0.45rem 0.55rem;
+  min-width: 120px;
+}
+
+.shop-filter-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.72rem;
+  color: var(--ink);
+  border: 1px solid rgb(37 31 51 / 16%);
+  background: #fff;
+  padding: 0.45rem 0.6rem;
+}
+
 /* Transaction table images — see consolidated rule below */
 
 .shop-table-id {
