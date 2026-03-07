@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Jost:wght@200;300;400;500&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Jost:wght@200;300;400;500&display=swap");
 
 :root {
   --cream: #f8f5f1;
@@ -19,9 +19,14 @@
 }
 
 body {
-  background: radial-gradient(circle at 12% 0%, #fceff4 0%, var(--cream) 33%, #effaf7 100%);
+  background: radial-gradient(
+    circle at 12% 0%,
+    #fceff4 0%,
+    var(--cream) 33%,
+    #effaf7 100%
+  );
   color: var(--charcoal);
-  font-family: 'Jost', sans-serif;
+  font-family: "Jost", sans-serif;
   font-weight: 300;
   overflow-x: hidden;
 }
@@ -31,7 +36,7 @@ body {
 }
 
 .font-display {
-  font-family: 'Cormorant Garamond', serif;
+  font-family: "Cormorant Garamond", serif;
 }
 
 ::-webkit-scrollbar {
@@ -59,7 +64,10 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  transition: background 0.4s ease, backdrop-filter 0.4s ease, box-shadow 0.4s ease;
+  transition:
+    background 0.4s ease,
+    backdrop-filter 0.4s ease,
+    box-shadow 0.4s ease;
 }
 
 .navbar.scrolled {
@@ -71,7 +79,7 @@ body {
 
 .brand {
   font-size: 1.45rem;
-  font-family: 'Cormorant Garamond', serif;
+  font-family: "Cormorant Garamond", serif;
   font-weight: 300;
   letter-spacing: 0.1em;
   text-decoration: none;
@@ -95,7 +103,7 @@ body {
 }
 
 .nav-link::after {
-  content: '';
+  content: "";
   position: absolute;
   bottom: 0;
   left: 0;
@@ -146,7 +154,7 @@ body {
 }
 
 .hero-eyebrow::before {
-  content: '';
+  content: "";
   display: block;
   width: 32px;
   height: 1px;
@@ -188,14 +196,17 @@ body {
   gap: 0.75rem;
   background: var(--ink);
   color: var(--cream);
-  font-family: 'Jost', sans-serif;
+  font-family: "Jost", sans-serif;
   font-size: 0.72rem;
   letter-spacing: 0.2em;
   text-transform: uppercase;
   padding: 1rem 2.25rem;
   border: none;
   cursor: pointer;
-  transition: background 0.3s, transform 0.2s, gap 0.3s;
+  transition:
+    background 0.3s,
+    transform 0.2s,
+    gap 0.3s;
   font-weight: 400;
 }
 
@@ -218,14 +229,16 @@ body {
   justify-content: center;
   background: transparent;
   color: var(--ink);
-  font-family: 'Jost', sans-serif;
+  font-family: "Jost", sans-serif;
   font-size: 0.72rem;
   letter-spacing: 0.2em;
   text-transform: uppercase;
   padding: 0.75rem 1.5rem;
   border: 1px solid var(--ink);
   cursor: pointer;
-  transition: background 0.3s, color 0.3s;
+  transition:
+    background 0.3s,
+    color 0.3s;
   font-weight: 400;
 }
 
@@ -308,7 +321,7 @@ body {
 }
 
 .section-eyebrow::before {
-  content: '';
+  content: "";
   display: inline-block;
   width: 24px;
   height: 1px;
@@ -322,7 +335,11 @@ body {
 
 .showcase-elevated {
   margin-top: 68px;
-  background: linear-gradient(180deg, rgb(237 232 223 / 40%) 0%, rgb(247 244 239 / 0%) 100%);
+  background: linear-gradient(
+    180deg,
+    rgb(237 232 223 / 40%) 0%,
+    rgb(247 244 239 / 0%) 100%
+  );
 }
 
 .showcase-head {
@@ -434,7 +451,11 @@ body {
 .card-img-inner {
   width: 100%;
   height: 100%;
-  background: linear-gradient(160deg, var(--parchment) 0%, var(--mid-grey) 100%);
+  background: linear-gradient(
+    160deg,
+    var(--parchment) 0%,
+    var(--mid-grey) 100%
+  );
   transition: transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   display: flex;
   align-items: center;
@@ -442,7 +463,7 @@ body {
   font-size: 0.6rem;
   letter-spacing: 0.2em;
   color: rgb(28 28 28 / 25%);
-  font-family: 'Jost', sans-serif;
+  font-family: "Jost", sans-serif;
 }
 
 .card-overlay {
@@ -472,7 +493,7 @@ body {
   letter-spacing: 0.18em;
   text-transform: uppercase;
   padding: 0.28rem 0.6rem;
-  font-family: 'Jost', sans-serif;
+  font-family: "Jost", sans-serif;
 }
 
 .card-body {
@@ -484,7 +505,7 @@ body {
 }
 
 .card-name {
-  font-family: 'Cormorant Garamond', serif;
+  font-family: "Cormorant Garamond", serif;
   font-size: 1.15rem;
   font-weight: 400;
   letter-spacing: 0.01em;
@@ -576,7 +597,7 @@ footer {
 }
 
 .footer-brand {
-  font-family: 'Cormorant Garamond', serif;
+  font-family: "Cormorant Garamond", serif;
   font-size: 2rem;
   font-weight: 300;
   letter-spacing: 0.08em;
@@ -616,7 +637,9 @@ footer {
   letter-spacing: 0.08em;
   color: rgb(247 244 239 / 40%);
   text-decoration: none;
-  transition: border-color 0.2s, color 0.2s;
+  transition:
+    border-color 0.2s,
+    color 0.2s;
 }
 
 .social-link:hover {
@@ -690,7 +713,10 @@ footer {
   font-size: 0.86rem;
   line-height: 1;
   cursor: pointer;
-  transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.2s ease;
 }
 
 .carousel-btn:hover {

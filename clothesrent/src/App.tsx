@@ -1,137 +1,124 @@
 import { useEffect, useRef, useState } from "react";
-import { useAuth0 } from '@auth0/auth0-react'
-import { CircleMarker, MapContainer, Popup, TileLayer } from 'react-leaflet'
+import { useAuth0 } from "@auth0/auth0-react";
+import { CircleMarker, MapContainer, Popup, TileLayer } from "react-leaflet";
 import "./App.css";
 import { UploadPhotoButton } from "./components/uploadPhotoButton";
+import ShopPage from "./pages/shopPage";
 
 type Product = {
-  id: number
-  name: string
-  category: string
-  price: string
-  distance: string
-  availability: string
-  badge: string | null
-}
-
-const NAV_LINKS = ["Home", "Shop", "New Arrivals", "Men", "Women", "Contact"];
+  id: number;
+  name: string;
+  category: string;
+  price: string;
+  distance: string;
+  availability: string;
+  badge: string | null;
+};
 
 const PRODUCTS: Product[] = [
   {
     id: 1,
-    name: 'Obsidian Trench',
-    category: 'Women - Outerwear',
-    price: '$485',
-    distance: '1.2 mi',
-    availability: 'Available Today',
-    badge: 'Popular',
+    name: "Obsidian Trench",
+    category: "Women - Outerwear",
+    price: "$485",
+    distance: "1.2 mi",
+    availability: "Available Today",
+    badge: "Popular",
   },
   {
     id: 2,
-    name: 'Ivory Linen Shirt',
-    category: 'Men - Tops',
-    price: '$210',
-    distance: '2.4 mi',
-    availability: 'Available Tomorrow',
+    name: "Ivory Linen Shirt",
+    category: "Men - Tops",
+    price: "$210",
+    distance: "2.4 mi",
+    availability: "Available Tomorrow",
     badge: null,
   },
   {
     id: 3,
-    name: 'Slate Wool Blazer',
-    category: 'Men - Tailoring',
-    price: '$620',
-    distance: '0.9 mi',
-    availability: 'Available Today',
-    badge: 'Popular',
+    name: "Slate Wool Blazer",
+    category: "Men - Tailoring",
+    price: "$620",
+    distance: "0.9 mi",
+    availability: "Available Today",
+    badge: "Popular",
   },
   {
     id: 4,
-    name: 'Cream Slip Dress',
-    category: 'Women - Dresses',
-    price: '$340',
-    distance: '1.8 mi',
-    availability: 'Available Today',
+    name: "Cream Slip Dress",
+    category: "Women - Dresses",
+    price: "$340",
+    distance: "1.8 mi",
+    availability: "Available Today",
     badge: null,
   },
   {
     id: 5,
-    name: 'Charcoal Wide-Leg',
-    category: 'Men - Trousers',
-    price: '$295',
-    distance: '3.2 mi',
-    availability: 'Available Tomorrow',
-    badge: 'New',
+    name: "Charcoal Wide-Leg",
+    category: "Men - Trousers",
+    price: "$295",
+    distance: "3.2 mi",
+    availability: "Available Tomorrow",
+    badge: "New",
   },
   {
     id: 6,
-    name: 'Ecru Knit Set',
-    category: 'Women - Knitwear',
-    price: '$375',
-    distance: '1.5 mi',
-    availability: 'Available Today',
+    name: "Ecru Knit Set",
+    category: "Women - Knitwear",
+    price: "$375",
+    distance: "1.5 mi",
+    availability: "Available Today",
     badge: null,
   },
   {
     id: 7,
-    name: 'Bone Leather Jacket',
-    category: 'Women - Outerwear',
-    price: '$890',
-    distance: '2.0 mi',
-    availability: 'Available Today',
-    badge: 'Limited',
+    name: "Bone Leather Jacket",
+    category: "Women - Outerwear",
+    price: "$890",
+    distance: "2.0 mi",
+    availability: "Available Today",
+    badge: "Limited",
   },
   {
     id: 8,
-    name: 'Ash Cashmere Coat',
-    category: 'Men - Outerwear',
-    price: '$1,150',
-    distance: '4.1 mi',
-    availability: 'Weekend Pickup',
-    badge: 'Limited',
+    name: "Ash Cashmere Coat",
+    category: "Men - Outerwear",
+    price: "$1,150",
+    distance: "4.1 mi",
+    availability: "Weekend Pickup",
+    badge: "Limited",
   },
-]
+];
 
 const FOOTER_LINKS: Record<string, string[]> = {
-  Shop: ['New Arrivals', 'Women', 'Men', 'Accessories', 'Sale'],
-  Help: ['Size Guide', 'Shipping', 'Returns', 'Contact Us', 'FAQ'],
-  Brand: ['Our Story', 'Sustainability', 'Press', 'Careers', 'Stockists'],
-}
+  Shop: ["New Arrivals", "Women", "Men", "Accessories", "Sale"],
+  Help: ["Size Guide", "Shipping", "Returns", "Contact Us", "FAQ"],
+  Brand: ["Our Story", "Sustainability", "Press", "Careers", "Stockists"],
+};
 
 const NEARBY_RENTAL_SPOTS = [
-  { id: 1, name: 'Downtown Wardrobe Hub', lat: 43.6524, lng: -79.3839, eta: '12 min' },
-  { id: 2, name: 'Queen St Rental Closet', lat: 43.6467, lng: -79.3936, eta: '8 min' },
-  { id: 3, name: 'Harbourfront Style Point', lat: 43.6388, lng: -79.3817, eta: '15 min' },
-]
-
-function Navbar() {
-  const [scrolled, setScrolled] = useState(false);
-
-  useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 30);
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
-
-  return (
-    <nav className={`navbar${scrolled ? ' scrolled' : ''}`}>
-      <a href="/" className="brand">
-        MAISON ORE
-      </a>
-
-      <div className="nav-links">
-        {NAV_LINKS.map((link) => (
-          <a key={link} href="#" className="nav-link">
-            {link}
-          </a>
-        ))}
-      </div>
-
-      <a href="/signin" className="btn-outline nav-signin nav-signin-link">
-        Sign In
-      </a>
-    </nav>
-  );
-}
+  {
+    id: 1,
+    name: "Downtown Wardrobe Hub",
+    lat: 43.6524,
+    lng: -79.3839,
+    eta: "12 min",
+  },
+  {
+    id: 2,
+    name: "Queen St Rental Closet",
+    lat: 43.6467,
+    lng: -79.3936,
+    eta: "8 min",
+  },
+  {
+    id: 3,
+    name: "Harbourfront Style Point",
+    lat: 43.6388,
+    lng: -79.3817,
+    eta: "15 min",
+  },
+];
 
 function ProductCard({ product }: { product: Product }) {
   return (
@@ -159,52 +146,52 @@ function ProductCard({ product }: { product: Product }) {
 }
 
 function ProductShowcase() {
-  const viewportRef = useRef<HTMLDivElement>(null)
-  const [isHovered, setIsHovered] = useState(false)
-  const doubled = [...PRODUCTS, ...PRODUCTS]
+  const viewportRef = useRef<HTMLDivElement>(null);
+  const [isHovered, setIsHovered] = useState(false);
+  const doubled = [...PRODUCTS, ...PRODUCTS];
 
   useEffect(() => {
-    const viewport = viewportRef.current
-    if (!viewport) return
+    const viewport = viewportRef.current;
+    if (!viewport) return;
 
-    let animationFrame = 0
-    const speed = 0.45
+    let animationFrame = 0;
+    const speed = 0.45;
 
     const tick = () => {
       if (!isHovered) {
-        viewport.scrollLeft += speed
-        const halfWidth = viewport.scrollWidth / 2
+        viewport.scrollLeft += speed;
+        const halfWidth = viewport.scrollWidth / 2;
         if (viewport.scrollLeft >= halfWidth) {
-          viewport.scrollLeft -= halfWidth
+          viewport.scrollLeft -= halfWidth;
         }
       }
-      animationFrame = window.requestAnimationFrame(tick)
-    }
+      animationFrame = window.requestAnimationFrame(tick);
+    };
 
-    animationFrame = window.requestAnimationFrame(tick)
+    animationFrame = window.requestAnimationFrame(tick);
 
-    return () => window.cancelAnimationFrame(animationFrame)
-  }, [isHovered])
+    return () => window.cancelAnimationFrame(animationFrame);
+  }, [isHovered]);
 
   const slideBy = (direction: -1 | 1) => {
-    const viewport = viewportRef.current
-    if (!viewport) return
+    const viewport = viewportRef.current;
+    if (!viewport) return;
 
-    const cardStep = 324
-    viewport.scrollBy({ left: direction * cardStep, behavior: 'smooth' })
-  }
+    const cardStep = 324;
+    viewport.scrollBy({ left: direction * cardStep, behavior: "smooth" });
+  };
 
   return (
-    <section
-      className="showcase showcase-elevated"
-    >
+    <section className="showcase showcase-elevated">
       <div className="showcase-head">
         <div>
           <div className="section-eyebrow showcase-eyebrow">Near You</div>
           <h2 className="font-display showcase-title">
             Rentable Looks <em>Close By</em>
           </h2>
-          <p className="showcase-subtitle">Local picks within a short distance of your current location.</p>
+          <p className="showcase-subtitle">
+            Local picks within a short distance of your current location.
+          </p>
         </div>
         <div className="showcase-actions">
           <a href="#" className="showcase-link">
@@ -218,16 +205,14 @@ function ProductShowcase() {
           type="button"
           className="carousel-btn carousel-btn-left"
           aria-label="Scroll left through clothing items"
-          onClick={() => slideBy(-1)}
-        >
+          onClick={() => slideBy(-1)}>
           &#8592;
         </button>
         <div
           className="marquee-wrapper marquee-pad carousel-viewport"
           ref={viewportRef}
           onMouseEnter={() => setIsHovered(true)}
-          onMouseLeave={() => setIsHovered(false)}
-        >
+          onMouseLeave={() => setIsHovered(false)}>
           <div className="marquee-track">
             {doubled.map((product, index) => (
               <ProductCard key={`${product.id}-${index}`} product={product} />
@@ -238,13 +223,12 @@ function ProductShowcase() {
           type="button"
           className="carousel-btn carousel-btn-right"
           aria-label="Scroll right through clothing items"
-          onClick={() => slideBy(1)}
-        >
+          onClick={() => slideBy(1)}>
           &#8594;
         </button>
       </div>
     </section>
-  )
+  );
 }
 
 function NearbyMapSection() {
@@ -255,53 +239,33 @@ function NearbyMapSection() {
         <h3 className="font-display map-title">
           Rentals Around <em>You</em>
         </h3>
-        <p className="map-subtitle">Frontend-only placeholder map for nearby inventory. Plug in geolocation logic later.</p>
+        <p className="map-subtitle">
+          Frontend-only placeholder map for nearby inventory. Plug in
+          geolocation logic later.
+        </p>
       </div>
 
       <div className="map-shell">
-        <MapContainer center={[43.6518, -79.3832]} zoom={13} scrollWheelZoom={false} className="leaflet-map">
-          <TileLayer attribution='&copy; OpenStreetMap contributors' url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+        <MapContainer
+          center={[43.6518, -79.3832]}
+          zoom={13}
+          scrollWheelZoom={false}
+          className="leaflet-map">
+          <TileLayer
+            attribution="&copy; OpenStreetMap contributors"
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          />
           {NEARBY_RENTAL_SPOTS.map((spot) => (
             <CircleMarker
               key={spot.id}
               center={[spot.lat, spot.lng]}
               radius={9}
-              pathOptions={{ color: '#251f33', fillColor: '#7dd6c1', fillOpacity: 0.95, weight: 2 }}
-            >
-              <Popup>
-                <strong>{spot.name}</strong>
-                <br />
-                Pickup ETA: {spot.eta}
-              </Popup>
-            </CircleMarker>
-          ))}
-        </MapContainer>
-      </div>
-    </section>
-  )
-}
-
-function NearbyMapSection() {
-  return (
-    <section className="map-section">
-      <div className="map-section-head">
-        <div className="section-eyebrow map-eyebrow">Map View</div>
-        <h3 className="font-display map-title">
-          Rentals Around <em>You</em>
-        </h3>
-        <p className="map-subtitle">Frontend-only placeholder map for nearby inventory. Plug in geolocation logic later.</p>
-      </div>
-
-      <div className="map-shell">
-        <MapContainer center={[43.6518, -79.3832]} zoom={13} scrollWheelZoom={false} className="leaflet-map">
-          <TileLayer attribution='&copy; OpenStreetMap contributors' url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-          {NEARBY_RENTAL_SPOTS.map((spot) => (
-            <CircleMarker
-              key={spot.id}
-              center={[spot.lat, spot.lng]}
-              radius={9}
-              pathOptions={{ color: '#251f33', fillColor: '#7dd6c1', fillOpacity: 0.95, weight: 2 }}
-            >
+              pathOptions={{
+                color: "#251f33",
+                fillColor: "#7dd6c1",
+                fillOpacity: 0.95,
+                weight: 2,
+              }}>
               <Popup>
                 <strong>{spot.name}</strong>
                 <br />
@@ -369,11 +333,22 @@ function UploadImage() {
 }
 
 function SignInPage() {
-  const { isLoading, isAuthenticated, error, loginWithRedirect: login, logout: auth0Logout, user } = useAuth0()
+  const {
+    isLoading,
+    isAuthenticated,
+    error,
+    loginWithRedirect: login,
+    logout: auth0Logout,
+    user,
+  } = useAuth0();
 
-  const signup = () => login({ authorizationParams: { screen_hint: 'signup' } })
+  const signup = () =>
+    login({ authorizationParams: { screen_hint: "signup" } });
 
-  const logout = () => auth0Logout({ logoutParams: { returnTo: `${window.location.origin}/signin` } })
+  const logout = () =>
+    auth0Logout({
+      logoutParams: { returnTo: `${window.location.origin}/signin` },
+    });
 
   if (isLoading) {
     return (
@@ -382,7 +357,7 @@ function SignInPage() {
           <h1 className="font-display auth-title">Loading...</h1>
         </section>
       </main>
-    )
+    );
   }
 
   if (isAuthenticated) {
@@ -392,15 +367,20 @@ function SignInPage() {
           <a href="/" className="auth-home-link">
             Back to Home
           </a>
-          <p className="auth-subtitle">Logged in as {user?.email ?? 'your account'}</p>
+          <p className="auth-subtitle">
+            Logged in as {user?.email ?? "your account"}
+          </p>
           <h1 className="font-display auth-title">User Profile</h1>
           <pre className="auth-pre">{JSON.stringify(user, null, 2)}</pre>
-          <button type="button" className="btn-primary auth-btn" onClick={logout}>
+          <button
+            type="button"
+            className="btn-primary auth-btn"
+            onClick={logout}>
             Logout
           </button>
         </section>
       </main>
-    )
+    );
   }
 
   return (
@@ -413,22 +393,27 @@ function SignInPage() {
         <h1 className="font-display auth-title">Sign In</h1>
         {error && <p className="auth-error">Error: {error.message}</p>}
         <div className="auth-actions">
-          <button type="button" className="btn-primary auth-btn" onClick={signup}>
+          <button
+            type="button"
+            className="btn-primary auth-btn"
+            onClick={signup}>
             Signup
           </button>
-          <button type="button" className="btn-outline auth-btn" onClick={() => login()}>
+          <button
+            type="button"
+            className="btn-outline auth-btn"
+            onClick={() => login()}>
             Login
           </button>
         </div>
       </section>
     </main>
-  )
+  );
 }
 
 function LandingPage() {
   return (
     <>
-      <Navbar />
       <main>
         <ProductShowcase />
         <NearbyMapSection />
@@ -437,9 +422,19 @@ function LandingPage() {
       <Footer />
       <UploadImage />
     </>
-  )
+  );
 }
 
 export default function App() {
-  return window.location.pathname === '/signin' ? <SignInPage /> : <LandingPage />
+  const path = window.location.pathname;
+
+  if (path === "/signin") {
+    return <SignInPage />;
+  }
+
+  if (path === "/shop") {
+    return <ShopPage />;
+  }
+
+  return <LandingPage />;
 }

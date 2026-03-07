@@ -1,0 +1,190 @@
+.shop-page {
+  margin-top: 68px;
+  min-height: calc(100vh - 68px);
+  padding: 2rem 2rem 2.5rem;
+}
+
+.shop-layout {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+.shop-sidebar {
+  position: sticky;
+  top: 84px;
+  background: rgb(247 244 239 / 88%);
+  border: 1px solid rgb(37 31 51 / 10%);
+  box-shadow: 0 14px 30px rgb(37 31 51 / 8%);
+  padding: 1.25rem;
+}
+
+.shop-sidebar-label {
+  font-size: 0.62rem;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  color: var(--warm-grey);
+}
+
+.shop-sidebar-title {
+  margin-top: 0.35rem;
+  margin-bottom: 1rem;
+  font-size: 1.9rem;
+  font-weight: 300;
+  color: var(--ink);
+}
+
+.shop-nav-btn {
+  width: 100%;
+  display: block;
+  text-align: left;
+  margin-bottom: 0.55rem;
+  padding: 0.8rem 0.85rem;
+  border: 1px solid rgb(37 31 51 / 14%);
+  background: transparent;
+  color: var(--ink);
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.shop-nav-btn:hover,
+.shop-nav-btn.active {
+  background: var(--ink);
+  color: var(--cream);
+  border-color: var(--ink);
+}
+
+.shop-content {
+  background: rgb(247 244 239 / 88%);
+  border: 1px solid rgb(37 31 51 / 10%);
+  box-shadow: 0 18px 34px rgb(37 31 51 / 9%);
+  padding: 1.25rem;
+  min-height: 460px;
+}
+
+.shop-content-title {
+  font-size: clamp(2rem, 3.2vw, 2.8rem);
+  font-weight: 300;
+  color: var(--ink);
+  margin-bottom: 1rem;
+}
+
+.shop-section-subtitle {
+  color: var(--warm-grey);
+  margin-bottom: 1rem;
+  letter-spacing: 0.03em;
+}
+
+.shop-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0.9rem;
+}
+
+.shop-card {
+  border: 1px solid rgb(37 31 51 / 12%);
+  background: #fff;
+  padding: 0.95rem;
+}
+
+.shop-card-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.55rem;
+  align-items: start;
+}
+
+.shop-card-title {
+  font-family: "Cormorant Garamond", serif;
+  color: var(--ink);
+  font-weight: 400;
+  font-size: 1.15rem;
+}
+
+.shop-card-rate {
+  margin-top: 0.35rem;
+  margin-bottom: 0.2rem;
+  color: var(--ink);
+  letter-spacing: 0.04em;
+  font-weight: 400;
+}
+
+.shop-card-meta {
+  color: var(--warm-grey);
+  font-size: 0.78rem;
+  letter-spacing: 0.03em;
+}
+
+.shop-pill {
+  display: inline-block;
+  padding: 0.22rem 0.52rem;
+  font-size: 0.62rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  border: 1px solid transparent;
+}
+
+.shop-pill-live,
+.shop-pill-completed {
+  background: rgb(125 214 193 / 22%);
+  color: #166052;
+  border-color: rgb(125 214 193 / 48%);
+}
+
+.shop-pill-draft,
+.shop-pill-pending,
+.shop-pill-paused,
+.shop-pill-in-progress {
+  background: rgb(37 31 51 / 8%);
+  color: var(--ink);
+  border-color: rgb(37 31 51 / 18%);
+}
+
+.shop-table-wrap {
+  overflow-x: auto;
+  border: 1px solid rgb(37 31 51 / 10%);
+}
+
+.shop-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+}
+
+.shop-table th,
+.shop-table td {
+  padding: 0.68rem 0.75rem;
+  border-bottom: 1px solid rgb(37 31 51 / 8%);
+  font-size: 0.78rem;
+  text-align: left;
+}
+
+.shop-table th {
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: var(--warm-grey);
+  font-weight: 400;
+  background: rgb(237 232 223 / 30%);
+}
+
+@media (max-width: 900px) {
+  .shop-page {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+
+  .shop-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .shop-sidebar {
+    position: static;
+  }
+}
