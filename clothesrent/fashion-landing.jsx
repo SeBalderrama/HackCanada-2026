@@ -509,7 +509,7 @@ function HeroSection() {
   );
 }
 
-function ProductCard({ product }: { product: typeof PRODUCTS[number] }) {
+function ProductCard({ product }) {
   return (
     <div className="product-card">
       <div className="card-img-wrap">

@@ -1,44 +1,93 @@
-import { useEffect, useState } from 'react'
-import './App.css'
+import { useEffect, useState } from "react";
+import "./App.css";
+import { UploadPhotoButton } from "./components/uploadPhotoButton";
 
 type Product = {
-  id: number
-  name: string
-  category: string
-  price: string
-  badge: string | null
-}
+  id: number;
+  name: string;
+  category: string;
+  price: string;
+  badge: string | null;
+};
 
-const NAV_LINKS = ['Home', 'Shop', 'New Arrivals', 'Men', 'Women', 'Contact']
+const NAV_LINKS = ["Home", "Shop", "New Arrivals", "Men", "Women", "Contact"];
 
 const PRODUCTS: Product[] = [
-  { id: 1, name: 'Obsidian Trench', category: 'Women - Outerwear', price: '$485', badge: 'New' },
-  { id: 2, name: 'Ivory Linen Shirt', category: 'Men - Tops', price: '$210', badge: null },
-  { id: 3, name: 'Slate Wool Blazer', category: 'Men - Tailoring', price: '$620', badge: 'New' },
-  { id: 4, name: 'Cream Slip Dress', category: 'Women - Dresses', price: '$340', badge: null },
-  { id: 5, name: 'Charcoal Wide-Leg', category: 'Men - Trousers', price: '$295', badge: 'New' },
-  { id: 6, name: 'Ecru Knit Set', category: 'Women - Knitwear', price: '$375', badge: null },
-  { id: 7, name: 'Bone Leather Jacket', category: 'Women - Outerwear', price: '$890', badge: 'Limited' },
-  { id: 8, name: 'Ash Cashmere Coat', category: 'Men - Outerwear', price: '$1,150', badge: 'Limited' },
-]
+  {
+    id: 1,
+    name: "Obsidian Trench",
+    category: "Women - Outerwear",
+    price: "$485",
+    badge: "New",
+  },
+  {
+    id: 2,
+    name: "Ivory Linen Shirt",
+    category: "Men - Tops",
+    price: "$210",
+    badge: null,
+  },
+  {
+    id: 3,
+    name: "Slate Wool Blazer",
+    category: "Men - Tailoring",
+    price: "$620",
+    badge: "New",
+  },
+  {
+    id: 4,
+    name: "Cream Slip Dress",
+    category: "Women - Dresses",
+    price: "$340",
+    badge: null,
+  },
+  {
+    id: 5,
+    name: "Charcoal Wide-Leg",
+    category: "Men - Trousers",
+    price: "$295",
+    badge: "New",
+  },
+  {
+    id: 6,
+    name: "Ecru Knit Set",
+    category: "Women - Knitwear",
+    price: "$375",
+    badge: null,
+  },
+  {
+    id: 7,
+    name: "Bone Leather Jacket",
+    category: "Women - Outerwear",
+    price: "$890",
+    badge: "Limited",
+  },
+  {
+    id: 8,
+    name: "Ash Cashmere Coat",
+    category: "Men - Outerwear",
+    price: "$1,150",
+    badge: "Limited",
+  },
+];
 
 const FOOTER_LINKS: Record<string, string[]> = {
-  Shop: ['New Arrivals', 'Women', 'Men', 'Accessories', 'Sale'],
-  Help: ['Size Guide', 'Shipping', 'Returns', 'Contact Us', 'FAQ'],
-  Brand: ['Our Story', 'Sustainability', 'Press', 'Careers', 'Stockists'],
-}
+  Shop: ["New Arrivals", "Women", "Men", "Accessories", "Sale"],
+  Help: ["Size Guide", "Shipping", "Returns", "Contact Us", "FAQ"],
+  Brand: ["Our Story", "Sustainability", "Press", "Careers", "Stockists"],
+};
 
 function Navbar() {
-  const [scrolled, setScrolled] = useState(false)
+  const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 30)
-    window.addEventListener('scroll', onScroll, { passive: true })
-    return () => window.removeEventListener('scroll', onScroll)
-  }, [])
+    const onScroll = () => setScrolled(window.scrollY > 30);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   return (
-    <nav className={`navbar${scrolled ? ' scrolled' : ''}`}>
+    <nav className={`navbar${scrolled ? " scrolled" : ""}`}>
       <a href="#" className="brand">
         MAISON ORE
       </a>
@@ -53,7 +102,7 @@ function Navbar() {
 
       <button className="btn-outline nav-signin">Sign In</button>
     </nav>
-  )
+  );
 }
 
 function HeroSection() {
@@ -71,14 +120,20 @@ function HeroSection() {
         </h1>
 
         <p className="hero-sub anim-3">
-          Elevated wardrobe essentials crafted for those who move through the world with quiet intention. Every
-          piece, a conversation between fabric and form.
+          Elevated wardrobe essentials crafted for those who move through the
+          world with quiet intention. Every piece, a conversation between fabric
+          and form.
         </p>
 
         <div className="hero-actions anim-4">
           <button className="btn-primary">
             Shop Now
-            <svg width="14" height="10" viewBox="0 0 14 10" fill="none" aria-hidden="true">
+            <svg
+              width="14"
+              height="10"
+              viewBox="0 0 14 10"
+              fill="none"
+              aria-hidden="true">
               <path
                 d="M1 5h12M9 1l4 4-4 4"
                 stroke="currentColor"
@@ -95,7 +150,11 @@ function HeroSection() {
       <div className="hero-right">
         <div className="hero-deco-circle" />
         <div className="hero-img-frame">
-          <img src="/obcoat.jpg" alt="Model wearing the Obsidian Trench" className="hero-photo" />
+          <img
+            src="/obcoat.jpg"
+            alt="Model wearing the Obsidian Trench"
+            className="hero-photo"
+          />
         </div>
         <div className="featured-pill">
           <div className="featured-label">Featured</div>
@@ -104,7 +163,7 @@ function HeroSection() {
         </div>
       </div>
     </section>
-  )
+  );
 }
 
 function ProductCard({ product }: { product: Product }) {
@@ -125,11 +184,11 @@ function ProductCard({ product }: { product: Product }) {
         <div className="card-price">{product.price}</div>
       </div>
     </div>
-  )
+  );
 }
 
 function ProductShowcase() {
-  const doubled = [...PRODUCTS, ...PRODUCTS]
+  const doubled = [...PRODUCTS, ...PRODUCTS];
 
   return (
     <section className="showcase">
@@ -153,7 +212,7 @@ function ProductShowcase() {
         </div>
       </div>
     </section>
-  )
+  );
 }
 
 function Footer() {
@@ -164,10 +223,11 @@ function Footer() {
           <div className="footer-brand">MAISON ORE</div>
           <div className="footer-tagline">Crafted for the considered.</div>
           <p className="footer-copy">
-            A slow-fashion label rooted in timeless design, responsible sourcing, and uncompromising craft.
+            A slow-fashion label rooted in timeless design, responsible
+            sourcing, and uncompromising craft.
           </p>
           <div className="social-row">
-            {['IG', 'TW', 'TK', 'YT'].map((social) => (
+            {["IG", "TW", "TK", "YT"].map((social) => (
               <a key={social} href="#" className="social-link">
                 {social}
               </a>
@@ -202,9 +262,11 @@ function Footer() {
         </div>
       </div>
     </footer>
-  )
+  );
 }
-
+function UploadImage() {
+  return <UploadPhotoButton />;
+}
 export default function App() {
   return (
     <>
@@ -215,6 +277,7 @@ export default function App() {
         <ProductShowcase />
       </main>
       <Footer />
+      <UploadImage />
     </>
-  )
+  );
 }
