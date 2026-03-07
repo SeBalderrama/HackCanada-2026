@@ -8,6 +8,14 @@ export interface IUser extends Document {
   styleProfileJSON?: object;
 }
 
+export interface ImageTransformations {
+  removeBg: boolean;
+  replaceBg: string | null;
+  smartCrop: boolean;
+  badge: string | null;
+  badgeColor: string;
+}
+
 export interface IUserItemSell extends Document {
   sellerId: string;
   title: string;
@@ -19,6 +27,7 @@ export interface IUserItemSell extends Document {
   tags: string[];
   bbLink?: string;
   status: "Draft" | "Live" | "Paused" | "Sold";
+  transformations: ImageTransformations;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -41,6 +50,10 @@ export interface CreateListingBody {
   price: number;
   dailyRate: number;
   tags?: string[];
+  cloudinaryUrl?: string;
+  publicId?: string;
+  autoTags?: string[];
+  transformations?: ImageTransformations;
 }
 
 export interface PurchaseBody {

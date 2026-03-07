@@ -2,9 +2,17 @@ import { apiFetch, apiFormFetch } from "./client";
 import type {
   Listing,
   Purchase,
+  UploadImageResponse,
+  CreateListingBody,
   CreateListingResponse,
   PurchaseResponse,
 } from "../types/listing";
+
+export async function uploadImage(
+  formData: FormData
+): Promise<UploadImageResponse> {
+  return apiFormFetch<UploadImageResponse>("/api/upload", formData);
+}
 
 export async function fetchListings(status?: string): Promise<Listing[]> {
   const query = status ? `?status=${encodeURIComponent(status)}` : "";
@@ -16,9 +24,12 @@ export async function fetchListingById(id: string): Promise<Listing> {
 }
 
 export async function createListing(
-  formData: FormData
+  body: CreateListingBody
 ): Promise<CreateListingResponse> {
-  return apiFormFetch<CreateListingResponse>("/api/listings", formData);
+  return apiFetch<CreateListingResponse>("/api/listings", {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
 }
 
 export async function updateListing(

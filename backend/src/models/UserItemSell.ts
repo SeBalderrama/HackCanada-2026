@@ -1,6 +1,17 @@
 import mongoose, { Schema } from "mongoose";
 import { IUserItemSell } from "../types";
 
+const TransformationsSchema = new Schema(
+  {
+    removeBg: { type: Boolean, default: false },
+    replaceBg: { type: String, default: null },
+    smartCrop: { type: Boolean, default: true },
+    badge: { type: String, default: null },
+    badgeColor: { type: String, default: "e74c3c" },
+  },
+  { _id: false }
+);
+
 const UserItemSellSchema = new Schema<IUserItemSell>(
   {
     sellerId: { type: String, default: "" },
@@ -16,6 +27,16 @@ const UserItemSellSchema = new Schema<IUserItemSell>(
       type: String,
       enum: ["Draft", "Live", "Paused", "Sold"],
       default: "Live",
+    },
+    transformations: {
+      type: TransformationsSchema,
+      default: () => ({
+        removeBg: false,
+        replaceBg: null,
+        smartCrop: true,
+        badge: null,
+        badgeColor: "e74c3c",
+      }),
     },
   },
   { timestamps: true }

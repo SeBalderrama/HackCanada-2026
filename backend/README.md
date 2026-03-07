@@ -50,7 +50,8 @@ backend/
 │   │   └── cloudinary.ts          # Cloudinary SDK v2 init
 │   │
 │   ├── controllers/
-│   │   ├── listingController.ts   # Seller upload, CRUD, purchase
+│   │   ├── listingController.ts   # Seller listing CRUD + purchase (dual-mode: file or pre-uploaded)
+│   │   ├── uploadController.ts    # Image-only upload endpoint
 │   │   └── styleController.ts     # AI style analysis + search
 │   │
 │   ├── middleware/
@@ -64,6 +65,7 @@ backend/
 │   │
 │   ├── routes/
 │   │   ├── listingRoutes.ts       # /api/listings (with multer)
+│   │   ├── uploadRoutes.ts        # /api/upload (image-only upload)
 │   │   └── styleRoutes.ts         # /api/style
 │   │
 │   ├── services/
@@ -152,21 +154,35 @@ npm start        # node dist/server.js
 
 ## User Flows
 
-### Seller Upload Flow
+### Seller Upload Flow (Two-Phase Interactive)
 
 ```
-Seller fills form on frontend
+Phase 1 — Upload Image
+  Seller selects garment photo on frontend
         │
-        │  multipart/form-data: image, title, description, price, dailyRate, tags[]
+        │  multipart/form-data: image
+        ▼
+  POST /api/upload
+        │
+        ├── Upload image to Cloudinary → get cloudinaryUrl + publicId + auto-tags
+        │
+        ▼
+  Return { url, publicId, tags }
+
+Phase 2 — Enhance & Publish
+  Seller previews AI transformations (live Cloudinary URL preview)
+        │  Toggle: Remove BG, Replace BG, Smart Crop, Badge
+        │
+  Seller fills in title, description, price, tags
+        │
+        │  JSON body: cloudinaryUrl, publicId, autoTags, title, description, price, tags, transformations
         ▼
   POST /api/listings
         │
-        ├── Validate required fields (title, description, price, image)
-        ├── Validate image format (jpg, png, webp)
-        ├── Upload image to Cloudinary → get cloudinaryUrl + publicId + auto-tags
+        ├── Validate required fields (title, description, price, cloudinaryUrl)
         ├── Check for duplicate publicId
-        ├── Generate Backboard vector link (bbLink) — optional
-        ├── Merge Cloudinary auto-tags with user tags
+        ├── Merge auto-tags with user tags
+        ├── Store transformation preferences
         ├── Save UserItemSell document to MongoDB
         │
         ▼
@@ -229,6 +245,32 @@ Base URL: `http://localhost:5000`
 
 ---
 
+### Upload — `/api/upload`
+
+| Method | Endpoint | Body | Description |
+|--------|----------|------|-------------|
+| POST | `/api/upload` | `multipart/form-data` | Upload image to Cloudinary (returns URL + publicId + auto-tags) |
+
+#### POST `/api/upload` — Upload Image Only
+
+Send as **multipart/form-data**:
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `image` | File | ✅ | Image file (jpg, png, webp) |
+
+#### Response — Upload Success
+
+```json
+{
+  "url": "https://res.cloudinary.com/dj3drywnu/image/upload/v123/clothesrent/abc123.jpg",
+  "publicId": "clothesrent/abc123",
+  "tags": ["clothing", "outerwear", "fashion"]
+}
+```
+
+---
+
 ### Listings — `/api/listings`
 
 | Method | Endpoint | Body / Query | Description |
@@ -240,9 +282,35 @@ Base URL: `http://localhost:5000`
 | DELETE | `/api/listings/:id` | — | Delete a listing |
 | POST | `/api/listings/:id/purchase` | `{ "buyerId": "..." }` | Purchase an item |
 
-#### POST `/api/listings` — Create Listing
+#### POST `/api/listings` — Create Listing (Dual-Mode)
 
-Send as **multipart/form-data**:
+**Mode 1: Pre-uploaded image (recommended)** — Send as JSON:
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `cloudinaryUrl` | string | ✅ | Pre-uploaded Cloudinary URL (from `POST /api/upload`) |
+| `publicId` | string | ✅ | Cloudinary public ID |
+| `autoTags` | string[] | No | Auto-tags from upload response |
+| `title` | string | ✅ | Item title |
+| `description` | string | ✅ | Item description |
+| `price` | number | ✅ | Listing price |
+| `dailyRate` | number | No | Daily rental rate |
+| `tags` | string[] | No | User-supplied tags |
+| `sellerId` | string | No | Seller identifier (Auth0 user.sub) |
+| `transformations` | object | No | Cloudinary AI transform preferences |
+
+**`transformations` object:**
+```json
+{
+  "removeBg": false,
+  "replaceBg": null,
+  "smartCrop": true,
+  "badge": "NEW",
+  "badgeColor": "e74c3c"
+}
+```
+
+**Mode 2: File upload (legacy)** — Send as `multipart/form-data`:
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
@@ -346,8 +414,19 @@ Returns array of `UserItemSell` documents matching the style query:
 | `tags` | String[] | No | `[]` | Combined user + auto tags |
 | `bbLink` | String | No | — | Backboard vector search link |
 | `status` | String | No | `"Live"` | `Draft` \| `Live` \| `Paused` \| `Sold` |
+| `transformations` | Object | No | (see below) | Seller-chosen Cloudinary AI transform prefs |
 | `createdAt` | Date | Auto | — | Mongoose timestamp |
 | `updatedAt` | Date | Auto | — | Mongoose timestamp |
+
+**`transformations` subdocument:**
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `removeBg` | Boolean | `false` | AI background removal enabled |
+| `replaceBg` | String \| null | `null` | AI background replacement prompt |
+| `smartCrop` | Boolean | `true` | AI-aware smart crop |
+| `badge` | String \| null | `null` | Text badge overlay (e.g. "NEW") |
+| `badgeColor` | String | `"e74c3c"` | Badge background hex color |
 
 ### `useritembys` (UserItemBuy)
 
@@ -384,15 +463,20 @@ Returns array of `UserItemSell` documents matching the style query:
 - Returns `{ url, publicId, tags }` — auto-tagging enabled (`auto_tagging: 0.6`)
 - Validates image format (jpg, jpeg, png, webp)
 
-#### Cloudinary AI Features (Upload-Time)
+#### Cloudinary AI Features (Interactive Two-Phase)
 
-The backend upload pipeline applies these Cloudinary features automatically:
+The seller upload flow uses a **two-phase architecture** where the image is uploaded first, then the seller previews and selects AI transformations before publishing:
 
-| Feature | Implementation | Notes |
-|---------|---------------|-------|
-| **AI Background Removal** | `background_removal: "cloudinary_ai"` at upload | Requires Cloudinary AI Background Removal add-on |
-| **Auto-Tagging** | `categorization: "imagga_tagging"`, `auto_tagging: 0.6` | Tags with ≥60% confidence are auto-applied |
-| **Eager Smart Crop** | Pre-generates `c_fill,g_auto,w_400,h_533,q_auto,f_auto` variant | Cached at Cloudinary CDN, ready for instant delivery |
+| Phase | Feature | Implementation | Notes |
+|-------|---------|---------------|-------|
+| Upload | **Auto-Tagging** | `categorization: "imagga_tagging"`, `auto_tagging: 0.6` | Tags with ≥60% confidence are auto-applied |
+| Preview | **AI Background Removal** | Live URL preview: `e_background_removal` | Requires Cloudinary AI Background Removal add-on |
+| Preview | **AI Background Replace** | Live URL preview: `e_gen_background_replace:prompt_{text}` | Requires AI Generative add-on |
+| Preview | **Smart Crop** | Live URL preview: `c_fill,g_auto,w_400,h_533` | Free — AI gravity detection |
+| Preview | **Conditional Badge** | Live URL preview: `l_text:Arial_16_bold:{text},...` | Free — text overlay |
+| Always | **Optimize** | `q_auto,f_auto` appended to all URLs | Free — auto quality + format |
+
+Transformation preferences are stored in the `transformations` subdocument and applied at display time via URL manipulation.
 
 #### Cloudinary URL Transformations (Display-Time)
 

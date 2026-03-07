@@ -31,35 +31,57 @@ export const getListingById = async (req: Request, res: Response) => {
 
 export const createListing = async (req: Request, res: Response) => {
   try {
-    const { title, description, price, dailyRate, tags, sellerId } =
-      req.body as CreateListingBody;
+    const {
+      title,
+      description,
+      price,
+      dailyRate,
+      tags,
+      sellerId,
+      cloudinaryUrl: preUploadedUrl,
+      publicId: preUploadedPublicId,
+      autoTags,
+      transformations,
+    } = req.body as CreateListingBody;
 
     if (!title || !description || price == null) {
       res.status(400).json({ error: "title, description, and price are required" });
       return;
     }
 
-    if (!req.file) {
-      res.status(400).json({ error: "image file is required" });
+    let cloudinaryUrl: string;
+    let publicId: string;
+    let cloudinaryTags: string[] = [];
+
+    if (preUploadedUrl && preUploadedPublicId) {
+      // Image was pre-uploaded via POST /api/upload
+      cloudinaryUrl = preUploadedUrl;
+      publicId = preUploadedPublicId;
+      cloudinaryTags = autoTags ?? [];
+    } else if (req.file) {
+      // Legacy flow: image uploaded with listing creation
+      const cloudResult = await uploadImage(req.file.buffer, req.file.originalname);
+      cloudinaryUrl = cloudResult.url;
+      publicId = cloudResult.publicId;
+      cloudinaryTags = cloudResult.tags;
+    } else {
+      res.status(400).json({ error: "image file or pre-uploaded cloudinaryUrl + publicId required" });
       return;
     }
 
-    // Upload to Cloudinary
-    const cloudResult = await uploadImage(req.file.buffer, req.file.originalname);
-
     // Check for duplicate publicId
-    const existing = await UserItemSell.findOne({ publicId: cloudResult.publicId });
+    const existing = await UserItemSell.findOne({ publicId });
     if (existing) {
       res.status(409).json({ error: "Duplicate listing for this image" });
       return;
     }
 
     // Optionally generate Backboard vector link
-    const bbLink = await generateBBLink(cloudResult.url, title, description);
+    const bbLink = await generateBBLink(cloudinaryUrl, title, description);
 
     // Merge auto-tags from Cloudinary with user-supplied tags
     const mergedTags = [
-      ...new Set([...(tags ?? []), ...cloudResult.tags]),
+      ...new Set([...(tags ?? []), ...cloudinaryTags]),
     ];
 
     const listing = new UserItemSell({
@@ -68,11 +90,18 @@ export const createListing = async (req: Request, res: Response) => {
       description,
       price,
       dailyRate: dailyRate ?? 0,
-      cloudinaryUrl: cloudResult.url,
-      publicId: cloudResult.publicId,
+      cloudinaryUrl,
+      publicId,
       tags: mergedTags,
       bbLink: bbLink || undefined,
       status: "Live",
+      transformations: transformations ?? {
+        removeBg: false,
+        replaceBg: null,
+        smartCrop: true,
+        badge: null,
+        badgeColor: "e74c3c",
+      },
     });
 
     await listing.save();
@@ -89,6 +118,7 @@ export const createListing = async (req: Request, res: Response) => {
         tags: listing.tags,
         bbLink: listing.bbLink,
         status: listing.status,
+        transformations: listing.transformations,
         createdAt: listing.createdAt,
         updatedAt: listing.updatedAt,
       },

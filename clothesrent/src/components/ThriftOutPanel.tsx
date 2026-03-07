@@ -129,12 +129,16 @@ export default function ThriftOutPanel({ userId }: Props) {
       <div className="shop-grid">
         {items.map((item) => {
           const isOwn = userId && item.sellerId === userId;
-          const badge = getBadge(item);
+          const badge = item.transformations?.badge || getBadge(item);
+          const t = item.transformations;
           const displayUrl = item.cloudinaryUrl
             ? buildDisplayUrl(item.cloudinaryUrl, {
                 width: 400,
                 height: 533,
+                removeBg: t?.removeBg,
+                replaceBg: t?.replaceBg ?? undefined,
                 badge,
+                badgeColor: t?.badgeColor,
               })
             : "";
 

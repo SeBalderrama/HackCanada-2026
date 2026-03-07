@@ -48,16 +48,17 @@ clothesrent/
 │   │
 │   ├── components/
 │   │   ├── CloudinaryImage.tsx    # Cloudinary optimized image component
-│   │   ├── ListingsPanel.tsx      # Seller's listings (CRUD, status toggle)
+│   │   ├── ImageTransformPanel.tsx # Interactive AI transformation controls (preview + toggles)
+│   │   ├── ListingsPanel.tsx      # Seller's listings (CRUD, status toggle, stored transforms)
 │   │   ├── TransactionsPanel.tsx  # Purchase history table
-│   │   ├── ThriftOutPanel.tsx     # Browse & purchase live listings + search
+│   │   ├── ThriftOutPanel.tsx     # Browse & purchase live listings + stored transforms
 │   │   ├── navBar.tsx             # Top navigation bar
 │   │   └── uploadPhotoButton.tsx  # Direct-to-Cloudinary upload button
 │   │
 │   ├── pages/
 │   │   ├── shopPage.tsx           # Seller dashboard (3-tab layout)
 │   │   ├── shopPage.css           # Shop page styles
-│   │   ├── sellerUploadPosting.tsx # Create new listing form
+│   │   ├── sellerUploadPosting.tsx # Multi-step listing creator (Upload → Enhance → Details)
 │   │   └── sellerUploadPosting.css
 │   │
 │   ├── types/
@@ -134,17 +135,32 @@ Three-tab sidebar layout. Displays the signed-in user's nickname/email. All tabs
 - **Cloudinary-optimized images** — smart crop (400×533) + auto quality/format
 - Prevents self-purchase and double-purchase (backend validated)
 
-### 3. Create Listing (`/shop/new-listing`)
+### 3. Create Listing — Multi-Step Flow (`/shop/new-listing`)
 
-- **Image upload** — selects a local file (jpg/png/webp), shows preview
-- On submit, sends `multipart/form-data` to `POST /api/listings`:
-  - Image file → uploaded to Cloudinary server-side (with AI background removal + eager smart crop)
-  - **Auth0 `user.sub`** automatically sent as `sellerId`
-  - Title, description, price (required)
-  - Daily rate, comma-separated tags (optional)
-- Cloudinary auto-tags merged with user tags
-- Success message with listing title + status
-- Form resets on success
+Three-step interactive listing creator with live AI transformation preview:
+
+#### Step 1: Upload
+- **Image upload** — selects a local file (jpg/png/webp), shows local preview
+- Click "Upload to Cloudinary" → `POST /api/upload`
+- Returns Cloudinary URL + publicId + auto-generated AI tags
+- Progress indicator during upload
+
+#### Step 2: Enhance (ImageTransformPanel)
+- **Before / After** side-by-side preview using live Cloudinary URL transformations
+- **AI Background Removal** toggle — removes the background, keeps the garment
+- **AI Background Replace** toggle + prompt input — generates a new background from a text prompt (e.g. "clean white studio", "urban street scene")
+- **Smart Crop** toggle — AI-aware crop that keeps the garment centered (on by default)
+- **Badge Overlay** toggle + text input + color picker — adds a text badge (e.g. "NEW", "SALE") in the top-right corner
+- Auto optimization note (q_auto, f_auto always applied)
+
+#### Step 3: Details & Publish
+- Title, description, price (required)
+- Daily rate, comma-separated tags (optional)
+- **Auth0 `user.sub`** automatically sent as `sellerId`
+- Auto-tags from Cloudinary shown as pills
+- Submits JSON body to `POST /api/listings` (includes pre-uploaded URL + publicId + transformation preferences)
+- Transformation preferences stored in database for consistent display
+- Success message shown, all state resets to Step 1
 
 ### 4. Sign In (`/signin`)
 
@@ -172,7 +188,8 @@ All backend communication is centralized in two files:
 |----------|--------|----------|-------------|
 | `fetchListings(status?)` | GET | `/api/listings` | Get all or filtered listings |
 | `fetchListingById(id)` | GET | `/api/listings/:id` | Single listing |
-| `createListing(formData)` | POST | `/api/listings` | Create with image upload |
+| `uploadImage(formData)` | POST | `/api/upload` | Upload image only (returns URL + publicId + tags) |
+| `createListing(body)` | POST | `/api/listings` | Create listing with JSON body (pre-uploaded image + transforms) |
 | `updateListing(id, data)` | PUT | `/api/listings/:id` | Update fields |
 | `deleteListing(id)` | DELETE | `/api/listings/:id` | Remove listing |
 | `purchaseListing(id, buyerId)` | POST | `/api/listings/:id/purchase` | Purchase item |
@@ -187,10 +204,11 @@ All backend communication is centralized in two files:
 |-----------|------|-------|-------------|
 | `Navbar` | `navBar.tsx` | — | Top nav with brand, links, sign-in. Adds `scrolled` class on scroll |
 | `CloudinaryImage` | `CloudinaryImage.tsx` | `publicId, alt, width, height, className` | Renders optimized Cloudinary image via `@cloudinary/react` |
+| `ImageTransformPanel` | `ImageTransformPanel.tsx` | `cloudinaryUrl, onChange` | Interactive AI transformation controls with live before/after preview |
 | `UploadPhotoButton` | `uploadPhotoButton.tsx` | `onUploadSuccess, onUploadError, buttonLabel, uploadPreset` | Direct-to-Cloudinary browser upload with XHR progress bar |
-| `ListingsPanel` | `ListingsPanel.tsx` | `userId: string` | Seller's listing management — filters by Auth0 userId, Cloudinary-optimized images |
+| `ListingsPanel` | `ListingsPanel.tsx` | `userId: string` | Seller's listing management — applies stored transformations to display images |
 | `TransactionsPanel` | `TransactionsPanel.tsx` | `userId: string` | Purchase history — shows buyer/seller role pill, Cloudinary thumbnails |
-| `ThriftOutPanel` | `ThriftOutPanel.tsx` | `userId: string` | Browse live listings, Auth0-powered purchase, conditional badges, self-buy prevention |
+| `ThriftOutPanel` | `ThriftOutPanel.tsx` | `userId: string` | Browse live listings — applies stored transformations + conditional badges, Auth0-powered purchase |
 
 ---
 
@@ -232,6 +250,14 @@ const thumbUrl = thumbnailUrl(purchase.cloudinaryUrl, 64);
 ```typescript
 type ListingStatus = "Draft" | "Live" | "Paused" | "Sold";
 
+interface ImageTransformations {
+  removeBg: boolean;       // AI background removal
+  replaceBg: string | null; // AI background replacement prompt
+  smartCrop: boolean;       // AI-aware smart crop
+  badge: string | null;     // Text badge overlay
+  badgeColor: string;       // Badge hex color (default "e74c3c")
+}
+
 interface Listing {
   _id: string;
   sellerId: string;
@@ -244,6 +270,7 @@ interface Listing {
   tags: string[];
   bbLink?: string;
   status: ListingStatus;
+  transformations?: ImageTransformations;
   createdAt: string;
   updatedAt: string;
 }
@@ -339,15 +366,29 @@ The app runs at `http://localhost:5173`.
 ```
 1. Sign in via Auth0 at /signin
 2. Navigate to /shop → click "Create Listing"
-3. Select image file (jpg/png/webp) → preview shown
-4. Fill in title, description, price, optional daily rate & tags
-5. Click "Create Listing"
-6. Frontend sends multipart/form-data → POST /api/listings
-   (Auth0 user.sub auto-included as sellerId)
-7. Backend uploads image to Cloudinary (AI bg removal + auto-tagging + eager smart crop)
-8. Saves listing to MongoDB
-9. Success message shown, form resets
-10. Listing appears in "My Listings" tab
+3. Step 1 — Upload:
+   a. Select image file (jpg/png/webp) → local preview shown
+   b. Click "Upload to Cloudinary" → POST /api/upload
+   c. Image uploaded with AI auto-tagging → returns URL + publicId + tags
+4. Step 2 — Enhance:
+   a. Before/After preview panel shows original vs. enhanced
+   b. Toggle AI Background Removal (removes bg, keeps garment)
+   c. Toggle AI Background Replace + enter prompt (e.g. "white studio")
+   d. Toggle Smart Crop (AI-aware — on by default)
+   e. Toggle Badge Overlay + set text + pick color
+   f. All changes preview live via Cloudinary URL transformations
+   g. Click "Continue to Details"
+5. Step 3 — Details & Publish:
+   a. Fill in title, description, price (required)
+   b. Optional: daily rate, comma-separated tags
+   c. Auto-tags from Cloudinary shown as pills
+   d. Auth0 user.sub auto-included as sellerId
+   e. Click "Publish Listing"
+6. Frontend sends JSON body → POST /api/listings
+   (includes cloudinaryUrl, publicId, autoTags, transformations preferences)
+7. Backend saves listing to MongoDB with transformation preferences
+8. Success message shown, form resets to Step 1
+9. Listing appears in "My Listings" tab with stored transformations applied
 ```
 
 ### Buyer purchases an item
@@ -384,8 +425,11 @@ All images served through Cloudinary's CDN with transformations applied via URL 
 
 | Context | Dimensions | Transformations |
 |---------|-----------|----------------|
-| Card images (Listings, ThriftOut) | 400 × 533 (3:4) | `c_fill,g_auto,q_auto,f_auto` |
+| Card images (Listings, ThriftOut) | 400 × 533 (3:4) | `c_fill,g_auto,q_auto,f_auto` + stored transforms |
 | Table thumbnails (Transactions) | 64 × 64 | `c_fill,g_auto,q_auto,f_auto` |
 | Conditional badge ("NEW") | Same as card | + `l_text:Arial_16_bold:NEW,...` overlay |
+| Transform preview (Seller upload) | 400 × 533 (3:4) | Dynamic — live preview based on toggle state |
+
+Display components (`ListingsPanel`, `ThriftOutPanel`) read the `listing.transformations` field from the database and pass it to `buildDisplayUrl()` so the seller's chosen enhancements are applied consistently everywhere the image is shown.
 
 Grid cards are capped at `max-width: 320px` with `auto-fill` layout (no stretching on wide screens). All images use `loading="lazy"` for deferred loading below the fold.

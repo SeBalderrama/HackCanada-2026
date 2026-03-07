@@ -88,10 +88,15 @@ export default function ListingsPanel({ userId }: Props) {
       ) : (
         <div className="shop-grid">
           {listings.map((listing) => {
+            const t = listing.transformations;
             const displayUrl = listing.cloudinaryUrl
               ? buildDisplayUrl(listing.cloudinaryUrl, {
                   width: 400,
                   height: 533,
+                  removeBg: t?.removeBg,
+                  replaceBg: t?.replaceBg ?? undefined,
+                  badge: t?.badge ?? undefined,
+                  badgeColor: t?.badgeColor,
                 })
               : "";
 
