@@ -6,6 +6,8 @@ import "leaflet/dist/leaflet.css";
 import App from "./App.tsx";
 import Navbar from "./components/navBar.tsx";
 import type { Listing } from "./types/listing.ts";
+import { CartProvider } from "./context/CartContext.tsx";
+import { SavesProvider } from "./context/SavesContext.tsx";
 
 function Root() {
   const [recommendations, setRecommendations] = useState<Listing[]>([]);
@@ -17,8 +19,12 @@ function Root() {
       authorizationParams={{
         redirect_uri: `${window.location.origin}/profile`,
       }}>
-      <Navbar onRecommendations={setRecommendations} />
-      <App recommendations={recommendations} onClearRecommendations={() => setRecommendations([])} />
+      <CartProvider>
+        <SavesProvider>
+          <Navbar onRecommendations={setRecommendations} />
+          <App recommendations={recommendations} onClearRecommendations={() => setRecommendations([])} />
+        </SavesProvider>
+      </CartProvider>
     </Auth0Provider>
   );
 }

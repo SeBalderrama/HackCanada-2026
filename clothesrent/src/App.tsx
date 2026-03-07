@@ -6,6 +6,10 @@ import ShopPage from "./pages/shopPage";
 import SellerUploadPosting from "./pages/sellerUploadPosting";
 import ProfilePage from "./pages/profilePage";
 import OutfitPage from "./pages/outfitPage";
+import HowItWorksPage from "./pages/howItWorksPage";
+import ListingDetailPage from "./pages/listingDetailPage";
+import CartPage from "./pages/cartPage";
+import SavesPage from "./pages/savesPage";
 import {
   loadUserProfile,
   PROFILE_UPDATED_EVENT,
@@ -61,13 +65,13 @@ function ListingCard({ listing }: { listing: Listing }) {
   const badge = t?.badge || undefined;
   const displayUrl = listing.cloudinaryUrl
     ? buildDisplayUrl(listing.cloudinaryUrl, {
-        width: 400,
-        height: 533,
-        removeBg: t?.removeBg,
-        replaceBg: t?.replaceBg ?? undefined,
-        badge,
-        badgeColor: t?.badgeColor,
-      })
+      width: 400,
+      height: 533,
+      removeBg: t?.removeBg,
+      replaceBg: t?.replaceBg ?? undefined,
+      badge,
+      badgeColor: t?.badgeColor,
+    })
     : "";
 
   return (
@@ -116,7 +120,7 @@ function ProductShowcase({
   useEffect(() => {
     fetchListings("Live")
       .then((data) => setDbListings(data))
-      .catch(() => {});
+      .catch(() => { });
   }, []);
 
   const hasRecommendations = recommendations.length > 0;
@@ -198,33 +202,33 @@ function ProductShowcase({
           No listings yet. Be the first to post!
         </p>
       ) : (
-      <div className="carousel-shell">
-        <button
-          type="button"
-          className="carousel-btn carousel-btn-left"
-          aria-label="Scroll left through clothing items"
-          onClick={() => slideBy(-1)}>
-          &#8592;
-        </button>
-        <div
-          className="marquee-wrapper marquee-pad carousel-viewport"
-          ref={viewportRef}
-          onMouseEnter={() => setIsHovered(true)}
-          onMouseLeave={() => setIsHovered(false)}>
-          <div className="marquee-track">
-            {doubled.map((listing, index) => (
-              <ListingCard key={`${listing._id}-${index}`} listing={listing} />
-            ))}
+        <div className="carousel-shell">
+          <button
+            type="button"
+            className="carousel-btn carousel-btn-left"
+            aria-label="Scroll left through clothing items"
+            onClick={() => slideBy(-1)}>
+            &#8592;
+          </button>
+          <div
+            className="marquee-wrapper marquee-pad carousel-viewport"
+            ref={viewportRef}
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}>
+            <div className="marquee-track">
+              {doubled.map((listing, index) => (
+                <ListingCard key={`${listing._id}-${index}`} listing={listing} />
+              ))}
+            </div>
           </div>
+          <button
+            type="button"
+            className="carousel-btn carousel-btn-right"
+            aria-label="Scroll right through clothing items"
+            onClick={() => slideBy(1)}>
+            &#8594;
+          </button>
         </div>
-        <button
-          type="button"
-          className="carousel-btn carousel-btn-right"
-          aria-label="Scroll right through clothing items"
-          onClick={() => slideBy(1)}>
-          &#8594;
-        </button>
-      </div>
       )}
     </section>
   );
@@ -307,53 +311,53 @@ function NearbyMapSection() {
             : DEFAULT_MAP_CENTER;
 
           return (
-        <MapContainer
-          center={center}
-          zoom={13}
-          scrollWheelZoom={false}
-          className="leaflet-map">
-          <MapRecenter center={center} />
-          <TileLayer
-            attribution="&copy; OpenStreetMap contributors"
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          />
-          {NEARBY_RENTAL_SPOTS.map((spot) => (
-            <CircleMarker
-              key={spot.id}
-              center={[spot.lat, spot.lng]}
-              radius={9}
-              pathOptions={{
-                color: "#251f33",
-                fillColor: "#7dd6c1",
-                fillOpacity: 0.95,
-                weight: 2,
-              }}>
-              <Popup>
-                <strong>{spot.name}</strong>
-                <br />
-                Pickup ETA: {spot.eta}
-              </Popup>
-            </CircleMarker>
-          ))}
-          {userMapSpot && (
-            <CircleMarker
-              key={`profile-marker-${userMapSpot.lat}-${userMapSpot.lng}`}
-              center={[userMapSpot.lat, userMapSpot.lng]}
-              radius={12}
-              pathOptions={{
-                color: "#0f172a",
-                fillColor: "#38bdf8",
-                fillOpacity: 0.95,
-                weight: 2,
-              }}>
-              <Popup>
-                <strong>{userMapSpot.name} (You)</strong>
-                <br />
-                {userMapSpot.address}
-              </Popup>
-            </CircleMarker>
-          )}
-        </MapContainer>
+            <MapContainer
+              center={center}
+              zoom={13}
+              scrollWheelZoom={false}
+              className="leaflet-map">
+              <MapRecenter center={center} />
+              <TileLayer
+                attribution="&copy; OpenStreetMap contributors"
+                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              />
+              {NEARBY_RENTAL_SPOTS.map((spot) => (
+                <CircleMarker
+                  key={spot.id}
+                  center={[spot.lat, spot.lng]}
+                  radius={9}
+                  pathOptions={{
+                    color: "#251f33",
+                    fillColor: "#7dd6c1",
+                    fillOpacity: 0.95,
+                    weight: 2,
+                  }}>
+                  <Popup>
+                    <strong>{spot.name}</strong>
+                    <br />
+                    Pickup ETA: {spot.eta}
+                  </Popup>
+                </CircleMarker>
+              ))}
+              {userMapSpot && (
+                <CircleMarker
+                  key={`profile-marker-${userMapSpot.lat}-${userMapSpot.lng}`}
+                  center={[userMapSpot.lat, userMapSpot.lng]}
+                  radius={12}
+                  pathOptions={{
+                    color: "#0f172a",
+                    fillColor: "#38bdf8",
+                    fillOpacity: 0.95,
+                    weight: 2,
+                  }}>
+                  <Popup>
+                    <strong>{userMapSpot.name} (You)</strong>
+                    <br />
+                    {userMapSpot.address}
+                  </Popup>
+                </CircleMarker>
+              )}
+            </MapContainer>
           );
         })()}
       </div>
@@ -530,7 +534,7 @@ function LandingPage({
 
 export default function App({
   recommendations = [],
-  onClearRecommendations = () => {},
+  onClearRecommendations = () => { },
 }: {
   recommendations?: Listing[];
   onClearRecommendations?: () => void;
@@ -578,6 +582,22 @@ export default function App({
 
   if (path === "/outfit" || path === "/wardrobe") {
     return <OutfitPage />;
+  }
+
+  if (path === "/how-it-works") {
+    return <HowItWorksPage />;
+  }
+
+  if (path.startsWith("/listing/")) {
+    return <ListingDetailPage />;
+  }
+
+  if (path === "/cart") {
+    return <CartPage />;
+  }
+
+  if (path === "/saves") {
+    return <SavesPage />;
   }
 
   return <LandingPage recommendations={recommendations} onClearRecommendations={onClearRecommendations} />;

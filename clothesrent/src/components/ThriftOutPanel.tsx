@@ -1,13 +1,13 @@
 import { useEffect, useMemo, useState } from "react";
 import {
   fetchListings,
-  purchaseListing,
   searchListings,
 } from "../api/listings";
 import type { Listing } from "../types/listing";
 import { buildDisplayUrl } from "../utils/cloudinaryUrl";
 import { loadUserProfile, type UserProfileData } from "../utils/profileStorage";
 import { geocodeAddressToCoords } from "../utils/location";
+import { useCart } from "../context/CartContext";
 
 interface Props {
   userId: string;
@@ -24,9 +24,9 @@ function distanceKm(
   const h =
     Math.sin(dLat / 2) * Math.sin(dLat / 2) +
     Math.cos(toRad(a.lat)) *
-      Math.cos(toRad(b.lat)) *
-      Math.sin(dLng / 2) *
-      Math.sin(dLng / 2);
+    Math.cos(toRad(b.lat)) *
+    Math.sin(dLng / 2) *
+    Math.sin(dLng / 2);
   return 2 * r * Math.atan2(Math.sqrt(h), Math.sqrt(1 - h));
 }
 
@@ -35,7 +35,6 @@ export default function ThriftOutPanel({ userId }: Props) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
-  const [purchasing, setPurchasing] = useState<string | null>(null);
   const [minPrice, setMinPrice] = useState("");
   const [maxPrice, setMaxPrice] = useState("");
   const [proximityOnly, setProximityOnly] = useState(false);
@@ -46,6 +45,7 @@ export default function ThriftOutPanel({ userId }: Props) {
   const [locationCoords, setLocationCoords] = useState<
     Record<string, { lat: number; lng: number } | null>
   >({});
+  const { addToCart, isInCart } = useCart();
 
   const loadLive = async () => {
     setLoading(true);
@@ -145,26 +145,6 @@ export default function ThriftOutPanel({ userId }: Props) {
       setError(err.message || "Search failed");
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handlePurchase = async (itemId: string) => {
-    if (!userId) {
-      alert("Please sign in to make a purchase.");
-      return;
-    }
-
-    if (!confirm("Confirm purchase?")) return;
-
-    setPurchasing(itemId);
-    try {
-      await purchaseListing(itemId, userId);
-      alert("Purchase successful!");
-      setItems((prev) => prev.filter((i) => i._id !== itemId));
-    } catch (err: any) {
-      alert(err.message || "Purchase failed");
-    } finally {
-      setPurchasing(null);
     }
   };
 
@@ -320,13 +300,13 @@ export default function ThriftOutPanel({ userId }: Props) {
               : null;
           const displayUrl = item.cloudinaryUrl
             ? buildDisplayUrl(item.cloudinaryUrl, {
-                width: 400,
-                height: 533,
-                removeBg: t?.removeBg,
-                replaceBg: t?.replaceBg ?? undefined,
-                badge,
-                badgeColor: t?.badgeColor,
-              })
+              width: 400,
+              height: 533,
+              removeBg: t?.removeBg,
+              replaceBg: t?.replaceBg ?? undefined,
+              badge,
+              badgeColor: t?.badgeColor,
+            })
             : "";
 
           return (
@@ -372,13 +352,20 @@ export default function ThriftOutPanel({ userId }: Props) {
                 {isOwn ? (
                   <span className="shop-pill shop-pill-own">Your listing</span>
                 ) : (
-                  <button
-                    type="button"
-                    className="btn-primary shop-action-btn"
-                    disabled={purchasing === item._id || !userId}
-                    onClick={() => handlePurchase(item._id)}>
-                    {purchasing === item._id ? "Processing..." : "Purchase"}
-                  </button>
+                  <>
+                    <a
+                      href={`/listing/${item._id}`}
+                      className="btn-primary shop-action-btn">
+                      View
+                    </a>
+                    <button
+                      type="button"
+                      className="btn-outline shop-action-btn"
+                      disabled={isInCart(item._id)}
+                      onClick={() => addToCart(item, "buy")}>
+                      {isInCart(item._id) ? "In Cart" : "+ Cart"}
+                    </button>
+                  </>
                 )}
               </div>
             </article>
