@@ -26,6 +26,7 @@ export interface Listing {
   cloudinaryUrl: string;
   publicId: string;
   tags: string[];
+  location?: string;
   bbLink?: string;
   status: ListingStatus;
   transformations: ImageTransformations;
@@ -58,6 +59,7 @@ export interface CreateListingBody {
   price: number;
   dailyRate?: number;
   tags?: string[];
+  location?: string;
   cloudinaryUrl: string;
   publicId: string;
   autoTags?: string[];

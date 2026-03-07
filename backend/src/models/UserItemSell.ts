@@ -19,6 +19,7 @@ const UserItemSellSchema = new Schema<IUserItemSell>(
     description: { type: String, required: true },
     price: { type: Number, required: true },
     dailyRate: { type: Number, default: 0 },
+    location: { type: String, default: "" },
     cloudinaryUrl: { type: String, required: true },
     publicId: { type: String, required: true, unique: true },
     tags: { type: [String], default: [] },

@@ -22,6 +22,7 @@ export interface IUserItemSell extends Document {
   description: string;
   price: number;
   dailyRate: number;
+  location: string;
   cloudinaryUrl: string;
   publicId: string;
   tags: string[];
@@ -49,6 +50,7 @@ export interface CreateListingBody {
   description: string;
   price: number;
   dailyRate: number;
+  location?: string;
   tags?: string[];
   cloudinaryUrl?: string;
   publicId?: string;

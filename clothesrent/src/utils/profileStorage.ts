@@ -2,6 +2,7 @@ export interface UserProfileData {
   name: string;
   style: string;
   picture: string;
+  location: string;
 }
 
 export const PROFILE_UPDATED_EVENT = "profile-updated";
@@ -24,6 +25,7 @@ export function loadUserProfile(
       name: parsed.name || fallback.name,
       style: parsed.style || fallback.style,
       picture: parsed.picture || fallback.picture,
+      location: parsed.location || fallback.location,
     };
   } catch {
     return fallback;

@@ -1,11 +1,16 @@
 import { useEffect, useRef, useState } from "react";
 import { useAuth0 } from "@auth0/auth0-react";
-import { CircleMarker, MapContainer, Popup, TileLayer } from "react-leaflet";
+import { CircleMarker, MapContainer, Popup, TileLayer, useMap } from "react-leaflet";
 import "./App.css";
-import { UploadPhotoButton } from "./components/uploadPhotoButton";
 import ShopPage from "./pages/shopPage";
 import SellerUploadPosting from "./pages/sellerUploadPosting";
 import ProfilePage from "./pages/profilePage";
+import {
+  loadUserProfile,
+  PROFILE_UPDATED_EVENT,
+  type UserProfileData,
+} from "./utils/profileStorage";
+import { geocodeAddressToCoords } from "./utils/location";
 
 type Product = {
   id: number;
@@ -93,9 +98,7 @@ const PRODUCTS: Product[] = [
 ];
 
 const FOOTER_LINKS: Record<string, string[]> = {
-  Shop: ["New Arrivals", "Women", "Men", "Accessories", "Sale"],
-  Help: ["Size Guide", "Shipping", "Returns", "Contact Us", "FAQ"],
-  Brand: ["Our Story", "Sustainability", "Press", "Careers", "Stockists"],
+  Navigate: ["Home", "Shop", "Profile", "Sign In"],
 };
 
 const NEARBY_RENTAL_SPOTS = [
@@ -121,6 +124,18 @@ const NEARBY_RENTAL_SPOTS = [
     eta: "15 min",
   },
 ];
+
+const DEFAULT_MAP_CENTER: [number, number] = [43.6518, -79.3832];
+
+function MapRecenter({ center }: { center: [number, number] }) {
+  const map = useMap();
+
+  useEffect(() => {
+    map.setView(center, map.getZoom(), { animate: true });
+  }, [center, map]);
+
+  return null;
+}
 
 function ProductCard({ product }: { product: Product }) {
   return (
@@ -234,6 +249,59 @@ function ProductShowcase() {
 }
 
 function NearbyMapSection() {
+  const { user } = useAuth0();
+  const [userMapSpot, setUserMapSpot] = useState<{
+    name: string;
+    address: string;
+    lat: number;
+    lng: number;
+  } | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const refreshUserSpot = async () => {
+      if (!user?.sub) {
+        setUserMapSpot(null);
+        return;
+      }
+
+      const fallbackProfile: UserProfileData = {
+        name: user?.name ?? user?.nickname ?? "You",
+        style: "",
+        picture: user?.picture ?? "",
+        location: "",
+      };
+      const profile = loadUserProfile(user.sub, fallbackProfile);
+      if (!profile.location.trim()) {
+        setUserMapSpot(null);
+        return;
+      }
+
+      const coords = await geocodeAddressToCoords(profile.location);
+      if (cancelled || !coords) return;
+
+      setUserMapSpot({
+        name: profile.name || "Your profile",
+        address: profile.location,
+        lat: coords.lat,
+        lng: coords.lng,
+      });
+    };
+
+    const onProfileUpdated = () => {
+      refreshUserSpot();
+    };
+
+    refreshUserSpot();
+    window.addEventListener(PROFILE_UPDATED_EVENT, onProfileUpdated);
+
+    return () => {
+      cancelled = true;
+      window.removeEventListener(PROFILE_UPDATED_EVENT, onProfileUpdated);
+    };
+  }, [user?.name, user?.nickname, user?.picture, user?.sub]);
+
   return (
     <section className="map-section">
       <div className="map-section-head">
@@ -242,17 +310,27 @@ function NearbyMapSection() {
           Rentals Around <em>You</em>
         </h3>
         <p className="map-subtitle">
-          Frontend-only placeholder map for nearby inventory. Plug in
-          geolocation logic later.
+          Nearby rental spots plus your saved profile location.
         </p>
       </div>
 
       <div className="map-shell">
+        {/*
+          Keep map centered on profile location when available;
+          fallback to Toronto center otherwise.
+        */}
+        {(() => {
+          const center: [number, number] = userMapSpot
+            ? [userMapSpot.lat, userMapSpot.lng]
+            : DEFAULT_MAP_CENTER;
+
+          return (
         <MapContainer
-          center={[43.6518, -79.3832]}
+          center={center}
           zoom={13}
           scrollWheelZoom={false}
           className="leaflet-map">
+          <MapRecenter center={center} />
           <TileLayer
             attribution="&copy; OpenStreetMap contributors"
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -275,13 +353,41 @@ function NearbyMapSection() {
               </Popup>
             </CircleMarker>
           ))}
+          {userMapSpot && (
+            <CircleMarker
+              key={`profile-marker-${userMapSpot.lat}-${userMapSpot.lng}`}
+              center={[userMapSpot.lat, userMapSpot.lng]}
+              radius={12}
+              pathOptions={{
+                color: "#0f172a",
+                fillColor: "#38bdf8",
+                fillOpacity: 0.95,
+                weight: 2,
+              }}>
+              <Popup>
+                <strong>{userMapSpot.name} (You)</strong>
+                <br />
+                {userMapSpot.address}
+              </Popup>
+            </CircleMarker>
+          )}
         </MapContainer>
+          );
+        })()}
       </div>
     </section>
   );
 }
 
 function Footer() {
+  const toHref = (link: string) => {
+    if (link === "Home") return "/";
+    if (link === "Shop") return "/shop";
+    if (link === "Profile") return "/profile";
+    if (link === "Sign In") return "/signin";
+    return "#";
+  };
+
   return (
     <footer>
       <div className="footer-grid">
@@ -305,7 +411,7 @@ function Footer() {
           <div key={heading}>
             <div className="footer-col-head">{heading}</div>
             {links.map((link) => (
-              <a key={link} href="#" className="footer-link">
+              <a key={link} href={toHref(link)} className="footer-link">
                 {link}
               </a>
             ))}
@@ -329,9 +435,6 @@ function Footer() {
       </div>
     </footer>
   );
-}
-function UploadImage() {
-  return <UploadPhotoButton />;
 }
 
 function SignInPage() {
@@ -430,7 +533,6 @@ function LandingPage() {
         <div className="divider" />
       </main>
       <Footer />
-      <UploadImage />
     </>
   );
 }

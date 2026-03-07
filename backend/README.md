@@ -179,13 +179,13 @@ Phase 2 — Enhance & Publish
   Seller previews AI transformations (live Cloudinary URL preview)
         │  Toggle: Remove BG, Replace BG, Smart Crop, Badge
         │
-  Seller fills in title, description, price, tags
+  Seller fills in title, description, price, tags, and location
         │
-        │  JSON body: cloudinaryUrl, publicId, autoTags, title, description, price, tags, transformations
+        │  JSON body: cloudinaryUrl, publicId, autoTags, title, description, price, tags, location, transformations
         ▼
   POST /api/listings
         │
-        ├── Validate required fields (title, description, price, cloudinaryUrl)
+        ├── Validate required fields (title, description, price, location, cloudinaryUrl)
         ├── Check for duplicate publicId
         ├── Merge auto-tags with user tags
         ├── Store transformation preferences
@@ -308,6 +308,7 @@ Send as **multipart/form-data**:
 | `description` | string | ✅ | Item description |
 | `price` | number | ✅ | Listing price |
 | `dailyRate` | number | No | Daily rental rate |
+| `location` | string | ? | Pickup address for this listing |
 | `tags` | string[] | No | User-supplied tags |
 | `sellerId` | string | No | Seller identifier (Auth0 user.sub) |
 | `transformations` | object | No | Cloudinary AI transform preferences |
@@ -326,15 +327,16 @@ Send as **multipart/form-data**:
 
 **Mode 2: File upload (legacy)** — Send as `multipart/form-data`:
 
-| Field         | Type     | Required | Description                 |
-| ------------- | -------- | -------- | --------------------------- |
-| `image`       | File     | ✅       | Image file (jpg, png, webp) |
-| `title`       | string   | ✅       | Item title                  |
-| `description` | string   | ✅       | Item description            |
-| `price`       | number   | ✅       | Listing price               |
-| `dailyRate`   | number   | No       | Daily rental rate           |
-| `tags[]`      | string[] | No       | User-supplied tags          |
-| `sellerId`    | string   | No       | Seller identifier           |
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `image` | File | ✅ | Image file (jpg, png, webp) |
+| `title` | string | ✅ | Item title |
+| `description` | string | ✅ | Item description |
+| `price` | number | ✅ | Listing price |
+| `dailyRate` | number | No | Daily rental rate |
+| `location` | string | ? | Pickup address for this listing |
+| `tags[]` | string[] | No | User-supplied tags |
+| `sellerId` | string | No | Seller identifier |
 
 #### Response — Seller Upload Success
 
@@ -346,6 +348,7 @@ Send as **multipart/form-data**:
     "sellerId": "auth0|abc123",
     "title": "Obsidian Trench",
     "description": "Minimalist oversized trench coat",
+    "location": "100 Queen St W, Toronto",
     "cloudinaryUrl": "https://res.cloudinary.com/xyz/image/upload/clothesrent/abc123.jpg",
     "publicId": "clothesrent/abc123",
     "tags": ["trench", "outerwear", "minimalist"],
@@ -401,6 +404,7 @@ Returns array of `UserItemSell` documents matching the style query:
     "_id": "64f123abc456",
     "title": "Obsidian Trench",
     "description": "Minimalist oversized trench coat",
+    "location": "100 Queen St W, Toronto",
     "cloudinaryUrl": "https://...",
     "tags": ["trench", "outerwear"],
     "price": 485,
@@ -423,6 +427,7 @@ Returns array of `UserItemSell` documents matching the style query:
 | `description` | String | ✅ | — | Item description |
 | `price` | Number | ✅ | — | Sale/rental price |
 | `dailyRate` | Number | No | `0` | Daily rental rate |
+| `location` | String | ? | � | Pickup address for this listing |
 | `cloudinaryUrl` | String | ✅ | — | Cloudinary secure URL |
 | `publicId` | String | ✅ | — | Cloudinary public ID (unique) |
 | `tags` | String[] | No | `[]` | Combined user + auto tags |
@@ -537,8 +542,8 @@ With badge: https://res.cloudinary.com/dj3drywnu/image/upload/c_fill,g_auto,w_40
 ## Validation & Edge Cases
 
 | Validation | Endpoint | Behavior |
-| --- | --- | --- |
-| Missing title/description/price | `POST /api/listings` | 400 error |
+|------------|----------|----------|
+| Missing title/description/price/location | `POST /api/listings` | 400 error |
 | Missing image file | `POST /api/listings` | 400 error |
 | Invalid image format | `POST /api/listings` | 500 with descriptive message |
 | Duplicate `publicId` | `POST /api/listings` | 409 Conflict |
@@ -625,3 +630,4 @@ The frontend (`clothesrent/`) at `http://localhost:5173` connects to this backen
 **Style search**:
 
 - `POST /api/style/search` with `{ query: "..." }`
+

@@ -7,6 +7,8 @@ import {
   saveUserProfile,
   type UserProfileData,
 } from "../utils/profileStorage";
+import LocationAutocompleteInput from "../components/LocationAutocompleteInput";
+import { reverseGeocodeToSimpleAddress } from "../utils/location";
 
 export default function ProfilePage() {
   const { user } = useAuth0();
@@ -15,18 +17,23 @@ export default function ProfilePage() {
   const [name, setName] = useState("");
   const [style, setStyle] = useState("");
   const [picture, setPicture] = useState("");
+  const [location, setLocation] = useState("");
   const [saved, setSaved] = useState(false);
+  const [locationBusy, setLocationBusy] = useState(false);
+  const [locationMessage, setLocationMessage] = useState<string | null>(null);
 
   useEffect(() => {
     const fallback: UserProfileData = {
       name: user?.name ?? user?.nickname ?? "",
       style: "",
       picture: user?.picture ?? "",
+      location: "",
     };
     const profile = loadUserProfile(userId, fallback);
     setName(profile.name);
     setStyle(profile.style);
     setPicture(profile.picture);
+    setLocation(profile.location);
   }, [userId, user?.name, user?.nickname, user?.picture]);
 
   useEffect(() => {
@@ -37,6 +44,7 @@ export default function ProfilePage() {
       setName(updated.name);
       setStyle(updated.style);
       setPicture(updated.picture);
+      setLocation(updated.location);
       setSaved(true);
     };
 
@@ -61,9 +69,48 @@ export default function ProfilePage() {
   };
 
   const handleSave = () => {
-    const payload: UserProfileData = { name, style, picture };
+    const payload: UserProfileData = { name, style, picture, location };
     saveUserProfile(userId, payload);
     setSaved(true);
+  };
+
+  const handleUseCurrentLocation = () => {
+    if (!navigator.geolocation) {
+      setLocationMessage("Geolocation is not supported in this browser.");
+      return;
+    }
+
+    setLocationBusy(true);
+    setLocationMessage("Requesting your location...");
+
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const address = await reverseGeocodeToSimpleAddress(
+          position.coords.latitude,
+          position.coords.longitude,
+        );
+
+        if (!address) {
+          setLocationMessage("Could not resolve your location to an address.");
+          setLocationBusy(false);
+          return;
+        }
+
+        setLocation(address);
+        setSaved(false);
+        setLocationBusy(false);
+        setLocationMessage("Current location filled. Review and save profile.");
+      },
+      (error) => {
+        setLocationBusy(false);
+        if (error.code === 1) {
+          setLocationMessage("Location permission denied.");
+          return;
+        }
+        setLocationMessage("Could not get current location.");
+      },
+      { enableHighAccuracy: true, timeout: 12000, maximumAge: 60000 },
+    );
   };
 
   return (
@@ -118,6 +165,33 @@ export default function ProfilePage() {
           }}
           placeholder="e.g. Goth"
         />
+
+        <label className="profile-label" htmlFor="profile-location">
+          Location
+        </label>
+        <LocationAutocompleteInput
+          id="profile-location"
+          inputClassName="profile-input"
+          value={location}
+          onChange={(next) => {
+            setLocation(next);
+            setSaved(false);
+            setLocationMessage(null);
+          }}
+          placeholder="e.g. 100 Queen St W, Toronto"
+        />
+        <div className="profile-location-row">
+          <button
+            type="button"
+            className="btn-outline profile-location-btn"
+            onClick={handleUseCurrentLocation}
+            disabled={locationBusy}>
+            {locationBusy ? "Locating..." : "Use Current Location"}
+          </button>
+          {locationMessage && (
+            <p className="profile-location-message">{locationMessage}</p>
+          )}
+        </div>
 
         <div className="profile-actions">
           <button type="button" className="btn-primary profile-save-btn" onClick={handleSave}>
