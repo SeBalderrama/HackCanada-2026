@@ -19,15 +19,6 @@ interface PreviewItem {
   url: string;
 }
 
-const STYLE_SUGGESTIONS = [
-  "Goth",
-  "Streetwear",
-  "Minimalist",
-  "Vintage",
-  "Athleisure",
-  "Avant-Garde",
-];
-
 function fileToBase64(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();

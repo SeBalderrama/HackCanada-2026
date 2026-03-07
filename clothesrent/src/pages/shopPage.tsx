@@ -29,6 +29,12 @@ export default function ShopPage() {
 
           <button
             type="button"
+            className={`shop-nav-btn${activeView === "thriftOut" ? " active" : ""}`}
+            onClick={() => setActiveView("thriftOut")}>
+            Thrift Out
+          </button>
+          <button
+            type="button"
             className={`shop-nav-btn${activeView === "listings" ? " active" : ""}`}
             onClick={() => setActiveView("listings")}>
             My Listings
@@ -38,12 +44,6 @@ export default function ShopPage() {
             className={`shop-nav-btn${activeView === "transactions" ? " active" : ""}`}
             onClick={() => setActiveView("transactions")}>
             Transaction Log
-          </button>
-          <button
-            type="button"
-            className={`shop-nav-btn${activeView === "thriftOut" ? " active" : ""}`}
-            onClick={() => setActiveView("thriftOut")}>
-            Thrift Out
           </button>
           <button
             type="button"
