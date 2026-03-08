@@ -11,11 +11,7 @@ import HowItWorksPage from "./pages/howItWorksPage";
 import ListingDetailPage from "./pages/listingDetailPage";
 import CartPage from "./pages/cartPage";
 import SavesPage from "./pages/savesPage";
-import {
-  loadUserProfile,
-  PROFILE_UPDATED_EVENT,
-  type UserProfileData,
-} from "./utils/profileStorage";
+
 import { geocodeAddressToCoords, useUserLocation } from "./utils/location";
 import { onNavigate } from "./utils/navigate";
 import { fetchListings, fetchPublicUserProfile } from "./api/listings";
