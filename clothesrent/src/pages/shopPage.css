@@ -125,9 +125,11 @@
 
 .shop-card-stretch-link {
   position: absolute;
-  inset: 0;
+  inset: -0.95rem;
   z-index: 1;
   border-radius: 16px;
+  display: block;
+  text-decoration: none;
 }
 
 .shop-card-clickable>*:not(.shop-card-stretch-link) {

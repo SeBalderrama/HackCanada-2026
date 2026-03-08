@@ -340,24 +340,20 @@
 /* ── Enhance: Photo left, Controls right ── */
 .transform-layout {
   display: grid;
-  grid-template-columns: 280px 1fr;
-  gap: 1.5rem;
+  grid-template-columns: 240px 1fr;
+  gap: 2rem;
   margin-top: 0.5rem;
-  align-items: start;
+  align-items: flex-start;
 }
 
 .transform-enhanced-preview {
   display: flex;
   flex-direction: column;
-  gap: 0.4rem;
+  gap: 0;
 }
 
 .transform-preview-label {
-  font-size: 0.65rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-  color: #8a7f96;
+  display: none;
 }
 
 .transform-preview-box {

@@ -443,7 +443,7 @@ body {
 }
 
 .showcase-title em {
-  color: var(--warm-grey);
+  color: #4a90e2;
   font-style: italic;
 }
 
@@ -904,11 +904,9 @@ body {
 }
 
 footer {
-  background: rgba(255, 255, 255, 0.45);
-  backdrop-filter: blur(24px) saturate(160%);
-  -webkit-backdrop-filter: blur(24px) saturate(160%);
-  border-top: 1px solid var(--glass-border);
-  color: var(--text-primary);
+  background: var(--charcoal);
+  border-top: 1px solid var(--charcoal);
+  color: #f9f8f5;
   padding: 5rem 4rem 2.5rem;
 }
 
@@ -924,13 +922,13 @@ footer {
   font-size: 0.7rem;
   letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: var(--warm-grey);
+  color: #b8b5b0;
   margin-bottom: 3rem;
 }
 
 .footer-copy {
   font-size: 0.78rem;
-  color: rgb(247 244 239 / 45%);
+  color: #b8b5b0;
   line-height: 1.85;
   max-width: 260px;
   font-weight: 300;
@@ -945,13 +943,13 @@ footer {
 .social-link {
   width: 34px;
   height: 34px;
-  border: 1px solid rgb(255 255 255 / 12%);
+  border: 1px solid #5a5955;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 0.6rem;
   letter-spacing: 0.08em;
-  color: rgb(247 244 239 / 40%);
+  color: #b8b5b0;
   text-decoration: none;
   transition:
     border-color 0.2s,
@@ -959,8 +957,8 @@ footer {
 }
 
 .social-link:hover {
-  border-color: rgb(255 255 255 / 45%);
-  color: var(--cream);
+  border-color: #d4cfca;
+  color: #f9f8f5;
 }
 
 .footer-grid {
@@ -968,14 +966,14 @@ footer {
   grid-template-columns: 2fr 1fr;
   gap: 2rem;
   padding-bottom: 3rem;
-  border-bottom: 1px solid rgb(255 255 255 / 8%);
+  border-bottom: 1px solid #5a5955;
 }
 
 .footer-col-head {
   font-size: 0.65rem;
   letter-spacing: 0.22em;
   text-transform: uppercase;
-  color: var(--warm-grey);
+  color: #b8b5b0;
   margin-bottom: 1.25rem;
   font-weight: 400;
 }
@@ -983,7 +981,7 @@ footer {
 .footer-link {
   display: block;
   font-size: 0.82rem;
-  color: rgb(247 244 239 / 55%);
+  color: #b8b5b0;
   text-decoration: none;
   margin-bottom: 0.65rem;
   letter-spacing: 0.04em;
@@ -992,7 +990,7 @@ footer {
 }
 
 .footer-link:hover {
-  color: var(--cream);
+  color: #f9f8f5;
 }
 
 .footer-bottom {
@@ -1001,7 +999,7 @@ footer {
   justify-content: space-between;
   align-items: center;
   font-size: 0.68rem;
-  color: rgb(247 244 239 / 30%);
+  color: #8a8480;
   letter-spacing: 0.08em;
   gap: 1rem;
 }

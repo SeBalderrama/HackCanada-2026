@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { FormEvent } from "react";
 import { useAuth0 } from "@auth0/auth0-react";
-import { uploadImage, createListing } from "../api/listings";
-import type { ImageTransformations } from "../types/listing";
+import { uploadImage, createListing, fetchListingById, updateListing } from "../api/listings";
+import type { ImageTransformations, Listing } from "../types/listing";
 import { DEFAULT_TRANSFORMATIONS } from "../types/listing";
 import ImageTransformPanel from "../components/ImageTransformPanel";
 import LocationAutocompleteInput from "../components/LocationAutocompleteInput";
@@ -40,6 +40,11 @@ type Step = "upload" | "transform" | "details";
 export default function SellerUploadPosting() {
   const { user } = useAuth0();
 
+  // Edit mode
+  const [editMode, setEditMode] = useState(false);
+  const [editingListingId, setEditingListingId] = useState<string | null>(null);
+  const [editLoadingError, setEditLoadingError] = useState<string | null>(null);
+
   // Step state
   const [step, setStep] = useState<Step>("upload");
 
@@ -68,6 +73,56 @@ export default function SellerUploadPosting() {
   const [submitMessage, setSubmitMessage] = useState<string | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [locationMessage, setLocationMessage] = useState<string | null>(null);
+
+  // Load edit listing data if in edit mode
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const editId = params.get("edit");
+
+    if (editId) {
+      setEditingListingId(editId);
+      setEditMode(true);
+
+      const loadEditData = async () => {
+        try {
+          const listing = await fetchListingById(editId) as Listing & { size?: { letter?: string; waist?: string; shoe?: string } };
+
+          // Check if user is the seller
+          if (listing.sellerId !== user?.sub) {
+            setEditLoadingError("You can only edit your own listings");
+            return;
+          }
+
+          // Pre-fill form with existing data
+          setCloudinaryUrl(listing.cloudinaryUrl);
+          setPublicId(listing.publicId);
+          setAutoTags(listing.tags || []);
+          setTransforms(listing.transformations || DEFAULT_TRANSFORMATIONS);
+
+          setDraft({
+            title: listing.title || "",
+            description: listing.description || "",
+            price: String(listing.price || ""),
+            dailyRate: String(listing.dailyRate || ""),
+            tags: (listing.tags || []).join(", "),
+            location: listing.location || "",
+            sizeLetter: listing.size?.letter || "",
+            sizeWaist: listing.size?.waist || "",
+            sizeShoe: listing.size?.shoe || "",
+          });
+
+          // In edit mode, skip to details step
+          setStep("details");
+        } catch (err: any) {
+          setEditLoadingError(err.message || "Failed to load listing for editing");
+        }
+      };
+
+      if (user?.sub) {
+        loadEditData();
+      }
+    }
+  }, [user?.sub]);
 
   const canSubmit = useMemo(() => {
     return Boolean(
@@ -175,43 +230,67 @@ export default function SellerUploadPosting() {
       };
       const hasSize = sizeObj.letter || sizeObj.waist || sizeObj.shoe;
 
-      const result = await createListing({
-        sellerName: loadUserProfile(user?.sub ?? "", {
-          name: "",
-          style: "",
-          picture: "",
-          location: "",
-        }).name.trim(),
-        title: draft.title.trim(),
-        description: draft.description.trim(),
-        price: parseFloat(draft.price),
-        dailyRate: draft.dailyRate ? parseFloat(draft.dailyRate) : undefined,
-        tags: userTags,
-        location: draft.location.trim(),
-        size: hasSize ? sizeObj : undefined,
-        sellerId: user?.sub,
-        cloudinaryUrl,
-        publicId,
-        autoTags,
-        transformations: transforms,
-      });
+      if (editMode && editingListingId) {
+        // Update existing listing
+        await updateListing(editingListingId, {
+          title: draft.title.trim(),
+          description: draft.description.trim(),
+          price: parseFloat(draft.price),
+          dailyRate: draft.dailyRate ? parseFloat(draft.dailyRate) : undefined,
+          tags: userTags,
+          location: draft.location.trim(),
+          size: hasSize ? sizeObj : undefined,
+          transformations: transforms,
+        });
 
-      setSubmitMessage(
-        `Listing "${result.item.title}" created successfully! Status: ${result.item.status}`,
-      );
-      // Reset local state
-      setDraft(INITIAL_DRAFT);
-      setSelectedFile(null);
-      setLocalPreviewUrl(null);
-      setCloudinaryUrl(null);
-      setPublicId(null);
-      setAutoTags([]);
-      setTransforms({ ...DEFAULT_TRANSFORMATIONS });
-      if (fileInputRef.current) fileInputRef.current.value = "";
-      // Navigate to profile so user can see their listings
-      navigate("/profile");
+        setSubmitMessage(
+          `Listing "${draft.title}" updated successfully!`,
+        );
+        setTimeout(() => {
+          navigate(`/listing/${editingListingId}`);
+        }, 1500);
+      } else {
+        // Create new listing
+        const result = await createListing({
+          sellerName: loadUserProfile(user?.sub ?? "", {
+            name: "",
+            style: "",
+            picture: "",
+            location: "",
+          }).name.trim(),
+          title: draft.title.trim(),
+          description: draft.description.trim(),
+          price: parseFloat(draft.price),
+          dailyRate: draft.dailyRate ? parseFloat(draft.dailyRate) : undefined,
+          tags: userTags,
+          location: draft.location.trim(),
+          size: hasSize ? sizeObj : undefined,
+          sellerId: user?.sub,
+          cloudinaryUrl,
+          publicId,
+          autoTags,
+          transformations: transforms,
+        });
+
+        setSubmitMessage(
+          `Listing "${result.item.title}" created successfully! Status: ${result.item.status}`,
+        );
+        // Reset local state
+        setDraft(INITIAL_DRAFT);
+        setSelectedFile(null);
+        setLocalPreviewUrl(null);
+        setCloudinaryUrl(null);
+        setPublicId(null);
+        setAutoTags([]);
+        setTransforms({ ...DEFAULT_TRANSFORMATIONS });
+        if (fileInputRef.current) fileInputRef.current.value = "";
+        // Navigate to profile so user can see their listings
+        setTimeout(() => {
+          navigate("/profile");
+        }, 1500);
+      }
     } catch (err: any) {
-      setSubmitError(err.message || "Failed to create listing");
+      setSubmitError(err.message || "Failed to save listing");
     } finally {
       setSubmitting(false);
     }
@@ -241,25 +320,44 @@ export default function SellerUploadPosting() {
 
   // ── Step Indicator ──
 
-  const steps: { key: Step; label: string }[] = [
-    { key: "upload", label: "1. Upload" },
-    { key: "transform", label: "2. Enhance" },
-    { key: "details", label: "3. Details" },
-  ];
+  const steps: { key: Step; label: string }[] = editMode
+    ? [
+        { key: "transform", label: "1. Enhance" },
+        { key: "details", label: "2. Details" },
+      ]
+    : [
+        { key: "upload", label: "1. Upload" },
+        { key: "transform", label: "2. Enhance" },
+        { key: "details", label: "3. Details" },
+      ];
+
+  if (editLoadingError) {
+    return (
+      <main className="seller-posting-page">
+        <section className="seller-posting-shell">
+          <div className="ldp-error">
+            <p>Error: {editLoadingError}</p>
+            <a href="/profile" className="btn-primary">Back to Profile</a>
+          </div>
+        </section>
+      </main>
+    );
+  }
 
   return (
     <main className="seller-posting-page">
       <section className="seller-posting-shell">
         <header className="seller-posting-head">
-          <a href="/shop" className="seller-posting-back-link">
-            Back to Shop
+          <a href={editMode && editingListingId ? `/listing/${editingListingId}` : "/shop"} className="seller-posting-back-link">
+            Back to {editMode ? "Listing" : "Shop"}
           </a>
           <h1 className="font-display seller-posting-title">
-            Create New Listing
+            {editMode ? "Edit Listing" : "Create New Listing"}
           </h1>
           <p className="seller-posting-subtitle">
-            Upload your garment photo, enhance it with AI features, then
-            publish.
+            {editMode
+              ? "Update your listing details and enhancements."
+              : "Upload your garment photo, enhance it with AI features, then publish."}
           </p>
         </header>
 
@@ -593,7 +691,13 @@ export default function SellerUploadPosting() {
                   type="submit"
                   className="btn-primary seller-submit-btn"
                   disabled={!canSubmit || submitting}>
-                  {submitting ? "Creating Listing..." : "Publish Listing"}
+                  {submitting
+                    ? editMode
+                      ? "Saving Changes..."
+                      : "Creating Listing..."
+                    : editMode
+                      ? "Save Changes →"
+                      : "Publish Listing"}
                 </button>
               </div>
 

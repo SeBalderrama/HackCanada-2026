@@ -199,16 +199,25 @@ export const createListing = async (req: Request, res: Response) => {
 
 export const updateListing = async (req: Request, res: Response) => {
   try {
-    const listing = await UserItemSell.findByIdAndUpdate(
-      req.params.id,
-      req.body,
-      { new: true }
-    );
+    const { id } = req.params;
+    const { sellerId } = req.body;
+
+    const listing = await UserItemSell.findById(id);
     if (!listing) {
       res.status(404).json({ error: "Listing not found" });
       return;
     }
-    res.json(listing);
+
+    // Prevent updating seller ID or changing ownership
+    const { sellerId: _, ...updateData } = req.body;
+
+    const updated = await UserItemSell.findByIdAndUpdate(
+      id,
+      updateData,
+      { new: true }
+    );
+
+    res.json(updated);
   } catch (error) {
     res.status(500).json({ error: "Failed to update listing" });
   }

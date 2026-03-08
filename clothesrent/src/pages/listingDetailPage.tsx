@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { fetchListingById } from "../api/listings";
+import { useAuth0 } from "@auth0/auth0-react";
+import { fetchListingById, deleteListing } from "../api/listings";
 import { buildDisplayUrl } from "../utils/cloudinaryUrl";
 import { useCart } from "../context/CartContext";
 import { useSaves } from "../context/SavesContext";
@@ -7,12 +8,14 @@ import { useListingDistance } from "../utils/location";
 import type { Listing } from "../types/listing";
 
 export default function ListingDetailPage() {
+    const { user } = useAuth0();
     const [listing, setListing] = useState<Listing | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
     const [mode, setMode] = useState<"rent" | "buy">("rent");
     const [days, setDays] = useState(1);
     const [added, setAdded] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
 
     const { addToCart, isInCart } = useCart();
     const { save, unsave, isSaved, boards } = useSaves();
@@ -55,6 +58,31 @@ export default function ListingDetailPage() {
         addToCart(listing, mode, mode === "rent" ? days : 1);
         setAdded(true);
         setTimeout(() => setAdded(false), 2000);
+    };
+
+    const isCurrentUserSeller = listing && user?.sub && listing.sellerId === user.sub;
+
+    const handleEditListing = () => {
+        if (!listing) return;
+        // Navigate to seller posting page with edit mode and listing ID
+        window.location.href = `/sell?edit=${listing._id}`;
+    };
+
+    const handleDeleteListing = async () => {
+        if (!listing || !isCurrentUserSeller) return;
+        if (!confirm("Are you sure you want to delete this listing? This cannot be undone.")) {
+            return;
+        }
+
+        setIsDeleting(true);
+        try {
+            await deleteListing(listing._id);
+            alert("Listing deleted successfully!");
+            window.location.href = "/profile";
+        } catch (err: any) {
+            alert("Failed to delete listing: " + (err.message || "Unknown error"));
+            setIsDeleting(false);
+        }
     };
 
     const currentPrice =
@@ -263,6 +291,29 @@ export default function ListingDetailPage() {
                     <a href="/cart" className="ldp-view-cart">
                         View Cart →
                     </a>
+
+                    {/* Edit/Delete for seller */}
+                    {isCurrentUserSeller && (
+                        <div className="ldp-seller-actions" style={{ display: "flex", gap: "0.5rem", marginTop: "1rem" }}>
+                            <button
+                                type="button"
+                                className="btn-outline"
+                                onClick={handleEditListing}
+                                style={{ flex: 1 }}
+                            >
+                                ✎ Edit Listing
+                            </button>
+                            <button
+                                type="button"
+                                className="btn-outline"
+                                onClick={handleDeleteListing}
+                                disabled={isDeleting}
+                                style={{ flex: 1, color: "#dc3545" }}
+                            >
+                                {isDeleting ? "Deleting..." : "🗑 Delete"}
+                            </button>
+                        </div>
+                    )}
 
                     {/* Seller info */}
                     <div className="ldp-seller">

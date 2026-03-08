@@ -270,10 +270,31 @@ export default function ProfilePage({ profileUserId, requireName = false }: Prof
   if (loadingProfile) {
     return (
       <main className="profile-page">
-        <section className="profile-card">
-          <h1 className="font-display profile-title">Profile</h1>
-          <p className="profile-subtitle">Loading profile...</p>
-        </section>
+        <div className="profile-layout">
+          <section className="profile-card profile-card-loading">
+            <div className="profile-loading-skeleton">
+              <div className="profile-picture profile-picture-skeleton" />
+              <div className="profile-skeleton-line profile-skeleton-line-title" />
+              <div className="profile-skeleton-line profile-skeleton-line-short" />
+              <div className="profile-skeleton-line" />
+              <div className="profile-skeleton-line profile-skeleton-line-short" />
+            </div>
+            <div className="profile-loading-content">
+              <div className="profile-spinner" />
+              <p className="profile-loading-text">Loading profile...</p>
+            </div>
+          </section>
+          <section className="profile-listings-panel profile-listings-panel-loading">
+            <div className="profile-listings-skeleton">
+              <div className="profile-skeleton-line profile-skeleton-line-title" />
+              <div className="profile-skeleton-grid">
+                {[...Array(3)].map((_, i) => (
+                  <div key={i} className="profile-skeleton-card" />
+                ))}
+              </div>
+            </div>
+          </section>
+        </div>
       </main>
     );
   }
