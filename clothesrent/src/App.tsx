@@ -20,6 +20,7 @@ import { onNavigate } from "./utils/navigate";
 import { fetchListings, fetchPublicUserProfile } from "./api/listings";
 import type { Listing } from "./types/listing";
 import { buildDisplayUrl } from "./utils/cloudinaryUrl";
+import StyleSearchModal from "./components/StyleSearchModal";
 
 const FOOTER_LINKS: Record<string, string[]> = {
   Navigate: ["Home", "Shop", "Profile", "Sign In"],
@@ -329,7 +330,7 @@ function NearbyMapSection() {
                   radius={9}
                   pathOptions={{
                     color: "#251f33",
-                    fillColor: "#7dd6c1",
+                    fillColor: "#b5afa8",
                     fillOpacity: 0.95,
                     weight: 2,
                   }}>
@@ -514,13 +515,30 @@ function SignInPage() {
 function LandingPage({
   recommendations,
   onClearRecommendations,
+  onRecommendations,
+  auth0Id,
 }: {
   recommendations: Listing[];
   onClearRecommendations: () => void;
+  onRecommendations: (listings: Listing[]) => void;
+  auth0Id: string;
 }) {
+  const [styleSearchOpen, setStyleSearchOpen] = useState(false);
+
+  const handleRecommendations = (listings: Listing[]) => {
+    onRecommendations(listings);
+    setStyleSearchOpen(false);
+  };
+
   return (
     <>
       <main>
+        <button
+          type="button"
+          className="style-search-floating"
+          onClick={() => setStyleSearchOpen(true)}>
+          &#9733; Style Search
+        </button>
         <ProductShowcase
           recommendations={recommendations}
           onClearRecommendations={onClearRecommendations}
@@ -529,6 +547,12 @@ function LandingPage({
         <div className="divider" />
       </main>
       <Footer />
+      <StyleSearchModal
+        isOpen={styleSearchOpen}
+        onClose={() => setStyleSearchOpen(false)}
+        auth0Id={auth0Id}
+        onRecommendations={handleRecommendations}
+      />
     </>
   );
 }
@@ -536,9 +560,11 @@ function LandingPage({
 export default function App({
   recommendations = [],
   onClearRecommendations = () => { },
+  onRecommendations = () => { },
 }: {
   recommendations?: Listing[];
   onClearRecommendations?: () => void;
+  onRecommendations?: (listings: Listing[]) => void;
 }) {
   const { isAuthenticated, isLoading, user } = useAuth0();
   const [path, setPath] = useState(window.location.pathname);
@@ -641,5 +667,5 @@ export default function App({
     return <SavesPage />;
   }
 
-  return <LandingPage recommendations={recommendations} onClearRecommendations={onClearRecommendations} />;
+  return <LandingPage recommendations={recommendations} onClearRecommendations={onClearRecommendations} onRecommendations={onRecommendations} auth0Id={user?.sub ?? ""} />;
 }

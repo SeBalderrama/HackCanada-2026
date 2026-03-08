@@ -112,7 +112,7 @@
 }
 
 .shop-card-title {
-  font-family: "Cormorant Garamond", serif;
+  font-family: "Bebas Neue", sans-serif;
   color: var(--ink);
   font-weight: 400;
   font-size: 1.15rem;
@@ -264,9 +264,10 @@
 }
 
 .shop-action-btn {
-  font-size: 0.64rem;
-  padding: 0.5rem 0.8rem;
+  font-size: 0.72rem;
+  padding: 0.5rem 1rem;
   cursor: pointer;
+  border-radius: 10px;
 }
 
 .shop-action-btn-danger {
@@ -433,7 +434,7 @@
 }
 
 .personalize-uploader-title {
-  font-family: "Cormorant Garamond", serif;
+  font-family: "Bebas Neue", sans-serif;
   font-size: 1.2rem;
   color: var(--ink);
 }
