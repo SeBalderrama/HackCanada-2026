@@ -142,6 +142,7 @@ export default function Navbar() {
                       className="nav-dropdown-item nav-dropdown-signout"
                       onClick={() => {
                         setProfileOpen(false);
+                        sessionStorage.removeItem("auth_session_active");
                         logout({
                           logoutParams: {
                             returnTo: `${window.location.origin}/signin`,

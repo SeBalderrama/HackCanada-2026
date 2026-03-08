@@ -103,10 +103,15 @@ function ProductShowcase({
 
   const hasRecommendations = recommendations.length > 0;
   const displayListings = hasRecommendations ? recommendations : dbListings;
+  // Only duplicate for infinite-scroll when showing the full catalogue.
+  // With recommendations, render them once so items don't visibly repeat.
   const doubled =
     displayListings.length > 0
-      ? [...displayListings, ...displayListings]
+      ? hasRecommendations
+        ? displayListings
+        : [...displayListings, ...displayListings]
       : [];
+
 
   useEffect(() => {
     const viewport = viewportRef.current;
@@ -453,10 +458,13 @@ function SignInPage() {
       },
     });
 
-  const logout = () =>
+  const logout = () => {
+    sessionStorage.removeItem("auth_session_active");
     auth0Logout({
       logoutParams: { returnTo: `${window.location.origin}/signin` },
     });
+  };
+
 
   if (isLoading) {
     return (
@@ -534,10 +542,8 @@ function LandingPage({
       .catch(() => { });
   }, []);
 
-  // Reset recommendations every time the user navigates back to Explore
-  useEffect(() => {
-    onClearRecommendations();
-  }, []);
+
+
 
   const handleRecommendations = (listings: Listing[]) => {
     onRecommendations(listings);
@@ -583,6 +589,11 @@ export default function App({
 }) {
   const { isAuthenticated, isLoading, user } = useAuth0();
   const [path, setPath] = useState(window.location.pathname);
+  // Persist auth latch in sessionStorage so React Strict Mode remounts
+  // (which reset refs) don't cause a mid-session flash of GatePage.
+  if (isAuthenticated) sessionStorage.setItem("auth_session_active", "1");
+  const hadSession = Boolean(sessionStorage.getItem("auth_session_active"));
+
 
   useEffect(() => {
     return onNavigate(() => setPath(window.location.pathname));
@@ -637,13 +648,15 @@ export default function App({
   );
 
 
-  // Show gate landing page for unauthenticated users at root (after Auth0 finishes loading)
-  if (!isLoading && !isAuthenticated && path === "/") {
+  // Show gate landing page for unauthenticated users at root.
+  // Guard with hadSession so a mid-session token refresh / Strict Mode remount
+  // doesn't falsely show this.
+  if (!isLoading && !isAuthenticated && !hadSession && path === "/") {
     return <GatePage />;
   }
 
-  // Redirect unauthenticated users away from protected routes (only after Auth0 has finished loading)
-  if (!isLoading && !isAuthenticated && isAccessingProtectedRoute) {
+  // Redirect unauthenticated users away from protected routes.
+  if (!isLoading && !isAuthenticated && !hadSession && isAccessingProtectedRoute) {
     return <SignInPage />;
   }
 
