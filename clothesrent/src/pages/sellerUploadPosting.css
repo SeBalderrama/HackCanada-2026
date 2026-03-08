@@ -103,7 +103,7 @@
   background: #fff;
   color: var(--ink);
   font-size: 0.9rem;
-  font-family: "Jost", sans-serif;
+  font-family: "DM Sans", sans-serif;
   padding: 0.65rem 0.7rem;
   outline: none;
 }
@@ -363,7 +363,7 @@
   background: rgb(247 244 239 / 60%);
   color: var(--ink);
   font-size: 0.82rem;
-  font-family: "Jost", sans-serif;
+  font-family: "DM Sans", sans-serif;
   padding: 0.55rem 0.65rem;
   outline: none;
 }

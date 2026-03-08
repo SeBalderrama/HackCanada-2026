@@ -21,8 +21,8 @@ function Root() {
       }}>
       <CartProvider>
         <SavesProvider>
-          <Navbar onRecommendations={setRecommendations} />
-          <App recommendations={recommendations} onClearRecommendations={() => setRecommendations([])} />
+          <Navbar />
+          <App recommendations={recommendations} onClearRecommendations={() => setRecommendations([])} onRecommendations={setRecommendations} />
         </SavesProvider>
       </CartProvider>
     </Auth0Provider>
