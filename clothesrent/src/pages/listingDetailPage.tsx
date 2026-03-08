@@ -3,6 +3,7 @@ import { fetchListingById } from "../api/listings";
 import { buildDisplayUrl } from "../utils/cloudinaryUrl";
 import { useCart } from "../context/CartContext";
 import { useSaves } from "../context/SavesContext";
+import { useListingDistance } from "../utils/location";
 import type { Listing } from "../types/listing";
 
 export default function ListingDetailPage() {
@@ -17,8 +18,9 @@ export default function ListingDetailPage() {
     const { save, unsave, isSaved, boards } = useSaves();
     const [saveBoard, setSaveBoard] = useState("all");
 
-    // Extract listing ID from URL
     const listingId = window.location.pathname.split("/listing/")[1] || "";
+
+    const distanceResult = useListingDistance(listing?.location);
 
     useEffect(() => {
         if (!listingId) {
@@ -128,6 +130,18 @@ export default function ListingDetailPage() {
 
                     {listing.location && (
                         <p className="ldp-location">📍 {listing.location}</p>
+                    )}
+
+                    {/* Distance badge */}
+                    {listing.location && (
+                        <div className="ldp-distance-badge">
+                            {distanceResult.status === "ok" && (
+                                <span className="ldp-distance-ok">📏 {distanceResult.label}</span>
+                            )}
+                            {distanceResult.status === "loading" && (
+                                <span className="ldp-distance-loading">Calculating distance…</span>
+                            )}
+                        </div>
                     )}
 
                     {/* Price */}
