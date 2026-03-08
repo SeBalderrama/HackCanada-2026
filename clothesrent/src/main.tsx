@@ -14,6 +14,7 @@ function Root() {
   const [recommendations, setRecommendations] = useState<Listing[]>([]);
   const { isAuthenticated, isLoading, user } = useAuth0();
   const [path, setPath] = useState(window.location.pathname);
+  const [onboarding, setOnboarding] = useState(true);
 
   useEffect(() => {
     return onNavigate(() => {
@@ -23,14 +24,22 @@ function Root() {
     });
   }, []);
 
-  // Hide the app navbar on the gate landing page (unauthenticated root) or onboarding
-  const hideNavbar = !isLoading && !isAuthenticated && path === "/";
+  // Hide navbar on gate page, during Auth0 load, or during onboarding check/flow
+  const hideNavbar =
+    isLoading ||
+    (!isAuthenticated && path === "/") ||
+    (isAuthenticated && onboarding);
 
   return (
     <CartProvider userId={user?.sub ?? ""}>
       <SavesProvider userId={user?.sub ?? ""}>
         {!hideNavbar && <Navbar />}
-        <App recommendations={recommendations} onClearRecommendations={() => setRecommendations([])} onRecommendations={setRecommendations} />
+        <App
+          recommendations={recommendations}
+          onClearRecommendations={() => setRecommendations([])}
+          onRecommendations={setRecommendations}
+          onOnboardingChange={setOnboarding}
+        />
       </SavesProvider>
     </CartProvider>
   );

@@ -636,10 +636,12 @@ export default function App({
   recommendations = [],
   onClearRecommendations = () => { },
   onRecommendations = () => { },
+  onOnboardingChange = () => { },
 }: {
   recommendations?: Listing[];
   onClearRecommendations?: () => void;
   onRecommendations?: (listings: Listing[]) => void;
+  onOnboardingChange?: (active: boolean) => void;
 }) {
   const { isAuthenticated, isLoading, user } = useAuth0();
   const [path, setPath] = useState(window.location.pathname);
@@ -658,6 +660,10 @@ export default function App({
   const [isCheckingRequiredProfile, setIsCheckingRequiredProfile] = useState(true);
   const [mustSetProfileName, setMustSetProfileName] = useState(false);
   const [needsOnboarding, setNeedsOnboarding] = useState(false);
+
+  useEffect(() => {
+    onOnboardingChange(isCheckingRequiredProfile || needsOnboarding);
+  }, [isCheckingRequiredProfile, needsOnboarding, onOnboardingChange]);
 
   useEffect(() => {
     let cancelled = false;
@@ -714,8 +720,13 @@ export default function App({
     return <SignInPage />;
   }
 
+  // While checking if onboarding is needed, show nothing (prevents explore flash)
+  if (isAuthenticated && isCheckingRequiredProfile) {
+    return null;
+  }
+
   // Show onboarding for new users who haven't set up their profile yet
-  if (isAuthenticated && !isCheckingRequiredProfile && needsOnboarding && !path.startsWith("/profile")) {
+  if (isAuthenticated && needsOnboarding && !path.startsWith("/profile")) {
     return (
       <OnboardingPage
         onComplete={() => {
@@ -723,6 +734,7 @@ export default function App({
           setMustSetProfileName(false);
           window.history.replaceState({}, "", "/");
           setPath("/");
+          window.scrollTo({ top: 0, behavior: "instant" });
         }}
       />
     );
