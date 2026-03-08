@@ -329,7 +329,7 @@ function NearbyMapSection() {
                   radius={9}
                   pathOptions={{
                     color: "#251f33",
-                    fillColor: "#7dd6c1",
+                    fillColor: "#b5afa8",
                     fillOpacity: 0.95,
                     weight: 2,
                   }}>
@@ -518,6 +518,13 @@ function LandingPage({
   recommendations: Listing[];
   onClearRecommendations: () => void;
 }) {
+  const [styleSearchOpen, setStyleSearchOpen] = useState(false);
+
+  const handleRecommendations = (listings: Listing[]) => {
+    onRecommendations(listings);
+    setStyleSearchOpen(false);
+  };
+
   return (
     <>
       <main>
