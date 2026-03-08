@@ -24,6 +24,7 @@ const envOrigins = (process.env.CORS_ORIGINS || "")
   .filter(Boolean);
 
 const allowedOriginSet = new Set([...allowedOrigins, ...envOrigins]);
+// Allow any origin (echo back request Origin) — use if you still see CORS blocked despite correct origins
 const allowAllOrigins =
   process.env.CORS_ALLOW_ALL === "true" || allowedOriginSet.has("*");
 
@@ -34,15 +35,17 @@ app.use(
         callback(null, true);
         return;
       }
+      // Normalize: trim and strip trailing slash so "https://threadify.pages.dev/" matches
+      const o = origin.trim().replace(/\/+$/, "");
 
       if (allowAllOrigins) {
         callback(null, true);
         return;
       }
 
-      const isPagesPreview = /^https:\/\/[a-z0-9-]+\.pages\.dev$/i.test(origin);
-      const isRender = /^https:\/\/[a-z0-9-]+\.onrender\.com$/i.test(origin);
-      if (allowedOriginSet.has(origin) || isPagesPreview || isRender) {
+      const isPagesPreview = /^https:\/\/[a-z0-9-]+\.pages\.dev$/i.test(o);
+      const isRender = /^https:\/\/[a-z0-9-]+\.onrender\.com$/i.test(o);
+      if (allowedOriginSet.has(o) || allowedOriginSet.has(origin) || isPagesPreview || isRender) {
         callback(null, true);
         return;
       }
