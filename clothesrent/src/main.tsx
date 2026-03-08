@@ -16,7 +16,11 @@ function Root() {
   const [path, setPath] = useState(window.location.pathname);
 
   useEffect(() => {
-    return onNavigate(() => setPath(window.location.pathname));
+    return onNavigate(() => {
+      const next = window.location.pathname;
+      setPath(next);
+      if (next === "/") setRecommendations([]);
+    });
   }, []);
 
   // Hide the app navbar on the gate landing page (unauthenticated root) or onboarding

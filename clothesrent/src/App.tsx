@@ -56,7 +56,7 @@ function ListingCard({ listing }: { listing: Listing }) {
     <a href={`/listing/${listing._id}`} className="product-card product-card-link">
       <div className="card-img-wrap">
         {displayUrl ? (
-          <img src={displayUrl} alt={listing.title} className="card-img-inner" loading="lazy" />
+          <img src={displayUrl} alt={listing.title} className="card-img-inner" loading="lazy" draggable={false} />
         ) : (
           <div className="card-img-inner">IMAGE</div>
         )}
@@ -98,8 +98,10 @@ function ProductShowcase({
   dbListings: Listing[];
 }) {
   const viewportRef = useRef<HTMLDivElement>(null);
-  const [isHovered, setIsHovered] = useState(false);
   const isPaused = useRef(false);
+  const isDragging = useRef(false);
+  const dragStartX = useRef(0);
+  const dragStartScroll = useRef(0);
 
   const hasRecommendations = recommendations.length > 0;
   const displayListings = hasRecommendations ? recommendations : dbListings;
@@ -118,10 +120,10 @@ function ProductShowcase({
     if (!viewport || doubled.length === 0) return;
 
     let animationFrame = 0;
-    const speed = 0.45;
+    const speed = 0.30;
 
     const tick = () => {
-      if (!isHovered && !isPaused.current) {
+      if (!isPaused.current) {
         viewport.scrollLeft += speed;
         const halfWidth = viewport.scrollWidth / 2;
         if (viewport.scrollLeft >= halfWidth) {
@@ -134,7 +136,7 @@ function ProductShowcase({
     animationFrame = window.requestAnimationFrame(tick);
 
     return () => window.cancelAnimationFrame(animationFrame);
-  }, [isHovered]);
+  }, [doubled.length]);
 
   const slideBy = (direction: -1 | 1) => {
     const viewport = viewportRef.current;
@@ -177,6 +179,48 @@ function ProductShowcase({
     requestAnimationFrame(animate);
   };
 
+  const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+    const viewport = viewportRef.current;
+    if (!viewport) return;
+    isDragging.current = true;
+    isPaused.current = true;
+    dragStartX.current = e.clientX;
+    dragStartScroll.current = viewport.scrollLeft;
+    viewport.style.cursor = "grabbing";
+    viewport.style.userSelect = "none";
+  };
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!isDragging.current) return;
+    const viewport = viewportRef.current;
+    if (!viewport) return;
+    const dx = e.clientX - dragStartX.current;
+    viewport.scrollLeft = dragStartScroll.current - dx;
+  };
+
+  const didDragRef = useRef(false);
+
+  const handleMouseUp = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!isDragging.current) return;
+    const dx = Math.abs(e.clientX - dragStartX.current);
+    didDragRef.current = dx > 5;
+    isDragging.current = false;
+    isPaused.current = false;
+    const viewport = viewportRef.current;
+    if (viewport) {
+      viewport.style.cursor = "grab";
+      viewport.style.userSelect = "";
+    }
+  };
+
+  const handleCarouselClick = (e: React.MouseEvent) => {
+    if (didDragRef.current) {
+      e.preventDefault();
+      e.stopPropagation();
+      didDragRef.current = false;
+    }
+  };
+
   return (
     <section className="showcase showcase-elevated">
       <div className="showcase-head">
@@ -188,7 +232,7 @@ function ProductShowcase({
             {hasRecommendations ? (
               <>Matched <em>For You</em></>
             ) : (
-              <>Rentable Looks <em>Close By</em></>
+              <>Rentable Looks, <em>Close By</em></>
             )}
           </h2>
           <p className="showcase-subtitle">
@@ -229,8 +273,18 @@ function ProductShowcase({
           <div
             className="marquee-wrapper marquee-pad carousel-viewport"
             ref={viewportRef}
-            onMouseEnter={() => setIsHovered(true)}
-            onMouseLeave={() => setIsHovered(false)}>
+            style={{ cursor: "grab" }}
+            onMouseDown={handleMouseDown}
+            onMouseMove={handleMouseMove}
+            onMouseUp={handleMouseUp}
+            onMouseLeave={() => {
+              if (!isDragging.current) return;
+              isDragging.current = false;
+              isPaused.current = false;
+              const vp = viewportRef.current;
+              if (vp) { vp.style.cursor = "grab"; vp.style.userSelect = ""; }
+            }}
+            onClick={handleCarouselClick}>
             <div className="marquee-track">
               {doubled.map((listing, index) => (
                 <ListingCard key={`${listing._id}-${index}`} listing={listing} />

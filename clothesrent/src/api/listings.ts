@@ -60,6 +60,15 @@ export async function purchaseListing(
   });
 }
 
+export async function generateListingContent(
+  imageUrl: string
+): Promise<{ title: string; description: string }> {
+  return apiFetch<{ title: string; description: string }>("/api/listings/generate-content", {
+    method: "POST",
+    body: JSON.stringify({ imageUrl }),
+  });
+}
+
 export async function searchListings(query: string): Promise<Listing[]> {
   return apiFetch<Listing[]>("/api/style/search", {
     method: "POST",

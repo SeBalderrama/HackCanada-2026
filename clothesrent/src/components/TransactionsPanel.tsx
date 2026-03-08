@@ -1,14 +1,52 @@
 import { useEffect, useState } from "react";
-import { fetchPurchases } from "../api/listings";
+import { fetchPurchases, fetchPublicUserProfile } from "../api/listings";
 import type { Purchase } from "../types/listing";
 import { thumbnailUrl } from "../utils/cloudinaryUrl";
 
 interface Props {
   userId: string;
+  filter?: "purchases" | "sales";
 }
 
-export default function TransactionsPanel({ userId }: Props) {
-  const [purchases, setPurchases] = useState<Purchase[]>([]);
+interface EnrichedPurchase extends Purchase {
+  counterpartyName: string;
+  counterpartyId: string;
+}
+
+async function enrichPurchases(
+  purchases: Purchase[],
+  userId: string,
+): Promise<EnrichedPurchase[]> {
+  const counterpartyIds = Array.from(
+    new Set(
+      purchases.map((p) => (p.buyerId === userId ? p.sellerId : p.buyerId)),
+    ),
+  );
+
+  const profileMap: Record<string, string> = {};
+  await Promise.all(
+    counterpartyIds.map(async (id) => {
+      try {
+        const profile = await fetchPublicUserProfile(id);
+        profileMap[id] = profile.name?.trim() || id;
+      } catch {
+        profileMap[id] = id;
+      }
+    }),
+  );
+
+  return purchases.map((p) => {
+    const counterpartyId = p.buyerId === userId ? p.sellerId : p.buyerId;
+    return {
+      ...p,
+      counterpartyId,
+      counterpartyName: profileMap[counterpartyId] || counterpartyId,
+    };
+  });
+}
+
+export default function TransactionsPanel({ userId, filter }: Props) {
+  const [purchases, setPurchases] = useState<EnrichedPurchase[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -18,13 +56,11 @@ export default function TransactionsPanel({ userId }: Props) {
       setError(null);
       try {
         const data = await fetchPurchases();
-        // Show purchases relevant to this user (as buyer or seller)
         const mine = userId
-          ? data.filter(
-              (p) => p.buyerId === userId || p.sellerId === userId
-            )
+          ? data.filter((p) => p.buyerId === userId || p.sellerId === userId)
           : data;
-        setPurchases(mine);
+        const enriched = await enrichPurchases(mine, userId);
+        setPurchases(enriched);
       } catch (err: any) {
         setError(err.message || "Failed to load transactions");
       } finally {
@@ -35,82 +71,79 @@ export default function TransactionsPanel({ userId }: Props) {
   }, [userId]);
 
   if (loading) {
-    return <p className="shop-section-subtitle">Loading transactions...</p>;
+    return <p className="shop-section-subtitle" style={{ marginTop: "0.5rem" }}>Loading transactions...</p>;
+  }
+  if (error) {
+    return <p className="shop-section-subtitle" style={{ color: "#b44", marginTop: "0.5rem" }}>{error}</p>;
   }
 
-  if (error) {
+  const bought = purchases.filter((p) => p.buyerId === userId);
+  const sold = purchases.filter((p) => p.sellerId === userId);
+
+  const rows = filter === "purchases" ? bought : filter === "sales" ? sold : [];
+  const role: "buyer" | "seller" = filter === "sales" ? "seller" : "buyer";
+
+  if (rows.length === 0) {
     return (
-      <p className="shop-section-subtitle" style={{ color: "#b44" }}>
-        {error}
+      <p className="shop-section-subtitle" style={{ marginTop: "0.5rem" }}>
+        {filter === "purchases" ? "No purchases yet." : filter === "sales" ? "No sales yet." : "No transactions recorded yet."}
       </p>
     );
   }
 
-  if (purchases.length === 0) {
-    return (
-      <p className="shop-section-subtitle">No transactions recorded yet.</p>
-    );
-  }
-
-  return (
-    <div className="shop-table-wrap">
+  const renderTable = (rows: EnrichedPurchase[], role: "buyer" | "seller") => (
+    <div className="shop-table-wrap txn-table-wrap">
       <table className="shop-table">
         <thead>
           <tr>
-            <th>Image</th>
             <th>Item</th>
             <th>Price</th>
-            <th>Role</th>
+            <th>{role === "buyer" ? "Bought From" : "Sold To"}</th>
             <th>Date</th>
-            <th>Tags</th>
           </tr>
         </thead>
         <tbody>
-          {purchases.map((purchase) => {
-            const role =
-              purchase.buyerId === userId ? "Buyer" : "Seller";
-
-            return (
-              <tr key={purchase._id}>
-                <td>
-                  {purchase.cloudinaryUrl && (
+          {rows.map((p) => (
+            <tr key={p._id}>
+              <td>
+                <div className="txn-item-cell">
+                  {p.cloudinaryUrl && (
                     <img
-                      src={thumbnailUrl(purchase.cloudinaryUrl, 64)}
-                      alt={purchase.title}
+                      src={thumbnailUrl(p.cloudinaryUrl, 48)}
+                      alt={p.title}
                       className="shop-table-img"
                       loading="lazy"
                     />
                   )}
-                </td>
-                <td>{purchase.title}</td>
-                <td>${purchase.price}</td>
-                <td>
-                  <span
-                    className={`shop-pill shop-pill-${role.toLowerCase()}`}>
-                    {role}
-                  </span>
-                </td>
-                <td>
-                  {new Date(purchase.purchaseDate).toLocaleDateString("en-US", {
-                    month: "short",
-                    day: "2-digit",
-                    year: "numeric",
-                  })}
-                </td>
-                <td>
-                  <div className="shop-card-tags">
-                    {purchase.tags.map((tag) => (
-                      <span key={tag} className="shop-tag">
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
-                </td>
-              </tr>
-            );
-          })}
+                  <a href={`/listing/${p.itemId}`} className="txn-item-link">{p.title}</a>
+                </div>
+              </td>
+              <td className="txn-price">${p.price}</td>
+              <td>
+                <a
+                  href={`/profile/${encodeURIComponent(p.counterpartyId)}`}
+                  className="txn-user-link"
+                >
+                  {p.counterpartyName}
+                </a>
+              </td>
+              <td className="txn-date">
+                {new Date(p.purchaseDate).toLocaleDateString("en-US", {
+                  month: "short",
+                  day: "numeric",
+                  year: "numeric",
+                })}
+              </td>
+            </tr>
+          ))}
         </tbody>
       </table>
+    </div>
+  );
+
+  return (
+    <div className="txn-panel">
+      {renderTable(rows, role)}
     </div>
   );
 }

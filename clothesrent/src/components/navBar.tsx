@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import { useAuth0 } from "@auth0/auth0-react";
 import { useCart } from "../context/CartContext";
 import { useSaves } from "../context/SavesContext";
+import { fetchPublicUserProfile } from "../api/listings";
+import { PROFILE_UPDATED_EVENT } from "../utils/profileStorage";
 
 const NAV_LINKS = ["Explore", "Shop", "Wardrobe", "How It Works"];
 
@@ -41,6 +43,23 @@ export default function Navbar() {
   const { savedCount } = useSaves();
   const [scrolled, setScrolled] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
+  const [savedPicture, setSavedPicture] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!isAuthenticated || !user?.sub) return;
+    fetchPublicUserProfile(user.sub)
+      .then((p) => { if (p.picture) setSavedPicture(p.picture); })
+      .catch(() => {});
+  }, [isAuthenticated, user?.sub]);
+
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent).detail;
+      if (detail?.picture) setSavedPicture(detail.picture);
+    };
+    window.addEventListener(PROFILE_UPDATED_EVENT, handler);
+    return () => window.removeEventListener(PROFILE_UPDATED_EVENT, handler);
+  }, []);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 30);
@@ -106,10 +125,10 @@ export default function Navbar() {
               onClick={() => setProfileOpen((p) => !p)}
               title={isAuthenticated ? user?.name || "Profile" : "Sign in"}
             >
-              {isAuthenticated && user?.picture ? (
+              {isAuthenticated && (savedPicture || user?.picture) ? (
                 <img
-                  src={user.picture}
-                  alt={user.name || "Avatar"}
+                  src={savedPicture || user!.picture!}
+                  alt={user?.name || "Avatar"}
                   className="nav-avatar-img"
                   referrerPolicy="no-referrer"
                 />

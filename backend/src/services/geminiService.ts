@@ -39,6 +39,33 @@ export async function analyzeStyle(
 }
 
 /**
+ * Given a publicly accessible image URL, generates a listing title and description.
+ */
+export async function generateListingContent(
+  imageUrl: string,
+): Promise<{ title: string; description: string }> {
+  const model = genAI.getGenerativeModel({ model: "models/gemini-2.5-flash" });
+
+  // Fetch image and convert to base64
+  const resp = await fetch(imageUrl);
+  const contentType = resp.headers.get("content-type") || "image/jpeg";
+  const buffer = await resp.arrayBuffer();
+  const base64 = Buffer.from(buffer).toString("base64");
+
+  const imagePart = { inlineData: { data: base64, mimeType: contentType } };
+
+  const prompt =
+    'You are a high-end thrift store copywriter. Given a photo of a clothing item, generate a short punchy listing title (3–6 words, title-case, no quotes) and a concise 1–2 sentence description that highlights style, material feel, and occasion. ' +
+    'Return ONLY valid JSON: {"title":"...","description":"..."}. No extra text.';
+
+  const result = await model.generateContent([prompt, imagePart]);
+  const text = result.response.text().trim();
+  const jsonMatch = text.match(/\{[\s\S]*\}/);
+  if (!jsonMatch) throw new Error("Gemini did not return valid JSON");
+  return JSON.parse(jsonMatch[0]) as { title: string; description: string };
+}
+
+/**
  * Analyzes a single image (as base64 or Buffer) and extracts relevant clothing/fashion tags.
  * Used during image upload to auto-generate searchable tags.
  */

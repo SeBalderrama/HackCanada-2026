@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { FormEvent } from "react";
 import { useAuth0 } from "@auth0/auth0-react";
-import { uploadImage, createListing, fetchListingById, updateListing } from "../api/listings";
+import { uploadImage, createListing, fetchListingById, updateListing, generateListingContent } from "../api/listings";
 import type { ImageTransformations, Listing } from "../types/listing";
 import { DEFAULT_TRANSFORMATIONS } from "../types/listing";
 import ImageTransformPanel from "../components/ImageTransformPanel";
@@ -69,6 +69,7 @@ export default function SellerUploadPosting() {
 
   // Details state
   const [draft, setDraft] = useState<ListingDraft>(INITIAL_DRAFT);
+  const [aiError, setAiError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [submitMessage, setSubmitMessage] = useState<string | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -293,6 +294,22 @@ export default function SellerUploadPosting() {
       setSubmitError(err.message || "Failed to save listing");
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const [aiGeneratingField, setAiGeneratingField] = useState<"title" | "description" | null>(null);
+
+  const handleAiGenerate = async (field: "title" | "description") => {
+    if (!cloudinaryUrl) return;
+    setAiGeneratingField(field);
+    setAiError(null);
+    try {
+      const result = await generateListingContent(cloudinaryUrl);
+      setDraft((p) => ({ ...p, [field]: result[field] }));
+    } catch (err: any) {
+      setAiError(err.message || "AI generation failed");
+    } finally {
+      setAiGeneratingField(null);
     }
   };
 
@@ -527,37 +544,53 @@ export default function SellerUploadPosting() {
             </section>
 
             <form className="seller-posting-form" onSubmit={handleSubmit}>
-              <label htmlFor="listing-title" className="seller-field-label">
-                Title
-              </label>
-              <input
-                id="listing-title"
-                type="text"
-                className="seller-field-input"
-                placeholder="Obsidian Trench"
-                value={draft.title}
-                onChange={(e) =>
-                  setDraft((p) => ({ ...p, title: e.target.value }))
-                }
-                required
-              />
+              {aiError && <p className="seller-error-text" style={{ marginBottom: "0.5rem" }}>{aiError}</p>}
 
-              <label
-                htmlFor="listing-description"
-                className="seller-field-label">
-                Description
-              </label>
-              <textarea
-                id="listing-description"
-                className="seller-field-input seller-field-textarea"
-                placeholder="Describe style, material, and condition..."
-                value={draft.description}
-                onChange={(e) =>
-                  setDraft((p) => ({ ...p, description: e.target.value }))
-                }
-                rows={5}
-                required
-              />
+              <label htmlFor="listing-title" className="seller-field-label">Title</label>
+              <div className="seller-input-ai-wrap">
+                <input
+                  id="listing-title"
+                  type="text"
+                  className="seller-field-input seller-field-input--with-ai"
+                  placeholder="Obsidian Trench"
+                  value={draft.title}
+                  onChange={(e) =>
+                    setDraft((p) => ({ ...p, title: e.target.value }))
+                  }
+                  required
+                />
+                <button
+                  type="button"
+                  className="seller-ai-inline-btn"
+                  disabled={aiGeneratingField === "title"}
+                  onClick={() => handleAiGenerate("title")}
+                >
+                  {aiGeneratingField === "title" ? "…" : "✦ AI"}
+                </button>
+              </div>
+
+              <label htmlFor="listing-description" className="seller-field-label">Description</label>
+              <div className="seller-input-ai-wrap seller-input-ai-wrap--textarea">
+                <textarea
+                  id="listing-description"
+                  className="seller-field-input seller-field-textarea seller-field-input--with-ai"
+                  placeholder="Describe style, material, and condition..."
+                  value={draft.description}
+                  onChange={(e) =>
+                    setDraft((p) => ({ ...p, description: e.target.value }))
+                  }
+                  rows={5}
+                  required
+                />
+                <button
+                  type="button"
+                  className="seller-ai-inline-btn seller-ai-inline-btn--textarea"
+                  disabled={aiGeneratingField === "description"}
+                  onClick={() => handleAiGenerate("description")}
+                >
+                  {aiGeneratingField === "description" ? "…" : "✦ AI"}
+                </button>
+              </div>
 
               <label htmlFor="listing-price" className="seller-field-label">
                 Price ($)
@@ -568,7 +601,7 @@ export default function SellerUploadPosting() {
                 min="0"
                 step="0.01"
                 className="seller-field-input"
-                placeholder="485"
+                placeholder="0.00"
                 value={draft.price}
                 onChange={(e) =>
                   setDraft((p) => ({ ...p, price: e.target.value }))
@@ -585,7 +618,7 @@ export default function SellerUploadPosting() {
                 min="0"
                 step="0.01"
                 className="seller-field-input"
-                placeholder="28"
+                placeholder="0.00"
                 value={draft.dailyRate}
                 onChange={(e) =>
                   setDraft((p) => ({ ...p, dailyRate: e.target.value }))

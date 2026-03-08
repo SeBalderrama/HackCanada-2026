@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type ChangeEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type ChangeEvent } from "react";
 import { useAuth0 } from "@auth0/auth0-react";
 import "./profilePage.css";
 import {
@@ -16,6 +16,7 @@ import {
 } from "../api/listings";
 import type { Listing } from "../types/listing";
 import { buildDisplayUrl } from "../utils/cloudinaryUrl";
+import TransactionsPanel from "../components/TransactionsPanel";
 
 interface ProfilePageProps {
   profileUserId?: string;
@@ -37,6 +38,9 @@ export default function ProfilePage({ profileUserId, requireName = false }: Prof
   const [locationMessage, setLocationMessage] = useState<string | null>(null);
   const [loadingProfile, setLoadingProfile] = useState(false);
   const [nameError, setNameError] = useState<string | null>(null);
+  const [showPicPopup, setShowPicPopup] = useState(false);
+  const [rightTab, setRightTab] = useState<"listings" | "purchases" | "sales">("listings");
+  const picInputRef = useRef<HTMLInputElement>(null);
 
   // User's own listings
   const [userListings, setUserListings] = useState<Listing[]>([]);
@@ -132,6 +136,7 @@ export default function ProfilePage({ profileUserId, requireName = false }: Prof
       if (typeof reader.result === "string") {
         setPicture(reader.result);
         setSaved(false);
+        setShowPicPopup(false);
       }
     };
     reader.readAsDataURL(file);
@@ -342,23 +347,25 @@ export default function ProfilePage({ profileUserId, requireName = false }: Prof
           </p>
 
           <div className="profile-picture-wrap">
-            {picture ? (
-              <img src={picture} alt="User profile" className="profile-picture" />
-            ) : (
-              <div className="profile-picture profile-picture-fallback">No Image</div>
-            )}
+            <div className="profile-pic-container">
+              {picture ? (
+                <img src={picture} alt="User profile" className="profile-picture" />
+              ) : (
+                <div className="profile-picture profile-picture-fallback">No Image</div>
+              )}
+              <button
+                type="button"
+                className="profile-pic-edit-btn"
+                onClick={() => setShowPicPopup(true)}
+                title="Change profile picture"
+              >
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                </svg>
+              </button>
+            </div>
           </div>
-
-          <label className="profile-label" htmlFor="profile-picture-upload">
-            Profile Picture
-          </label>
-          <input
-            id="profile-picture-upload"
-            type="file"
-            accept="image/*"
-            className="profile-input-file"
-            onChange={handlePictureChange}
-          />
 
           <label className="profile-label" htmlFor="profile-name">
             Name
@@ -434,8 +441,111 @@ export default function ProfilePage({ profileUserId, requireName = false }: Prof
             </button>
             {saved && <span className="profile-saved">Saved</span>}
           </div>
+          <input
+            ref={picInputRef}
+            type="file"
+            accept="image/*"
+            style={{ display: "none" }}
+            onChange={handlePictureChange}
+          />
         </section>
-        {listingsPanel}
+        {showPicPopup && (
+          <div className="profile-pic-popup-backdrop" onClick={() => setShowPicPopup(false)}>
+            <div className="profile-pic-popup" onClick={(e) => e.stopPropagation()}>
+              <button type="button" className="profile-pic-popup-close" onClick={() => setShowPicPopup(false)}>✕</button>
+              <h3 className="profile-pic-popup-title font-display">Profile Picture</h3>
+              <div className="profile-pic-popup-preview">
+                {picture ? (
+                  <img src={picture} alt="Preview" className="profile-pic-popup-img" />
+                ) : (
+                  <div className="profile-pic-popup-placeholder">No Image</div>
+                )}
+              </div>
+              <button
+                type="button"
+                className="btn-primary profile-pic-popup-upload-btn"
+                onClick={() => picInputRef.current?.click()}
+              >
+                Choose Photo
+              </button>
+              <p className="profile-pic-popup-hint">JPG, PNG, or WEBP. Will be saved with your profile.</p>
+            </div>
+          </div>
+        )}
+        <div className="profile-right-col">
+          <section className="profile-listings-panel">
+            <div className="profile-right-tabs">
+              <button
+                type="button"
+                className={`profile-right-tab${rightTab === "listings" ? " active" : ""}`}
+                onClick={() => setRightTab("listings")}
+              >
+                Listings
+              </button>
+              <button
+                type="button"
+                className={`profile-right-tab${rightTab === "purchases" ? " active" : ""}`}
+                onClick={() => setRightTab("purchases")}
+              >
+                Purchases
+              </button>
+              <button
+                type="button"
+                className={`profile-right-tab${rightTab === "sales" ? " active" : ""}`}
+                onClick={() => setRightTab("sales")}
+              >
+                Sales
+              </button>
+            </div>
+
+            {rightTab === "listings" && (
+              <>
+                {listingsLoading ? (
+                  <p className="profile-listings-empty">Loading listings...</p>
+                ) : userListings.length === 0 ? (
+                  <p className="profile-listings-empty">
+                    {isOwnProfile ? "No listings yet. Create your first listing!" : "No listings to show."}
+                  </p>
+                ) : (
+                  <div className="profile-listings-grid">
+                    {userListings.map((listing) => {
+                      const imgUrl = getListingDisplayUrl(listing);
+                      return (
+                        <a key={listing._id} href={`/listing/${listing._id}`} className="profile-listing-card">
+                          <div className="profile-listing-img-wrap">
+                            {imgUrl ? (
+                              <img src={imgUrl} alt={listing.title} className="profile-listing-img" loading="lazy" />
+                            ) : (
+                              <div className="profile-listing-img profile-listing-img-placeholder">No Image</div>
+                            )}
+                          </div>
+                          <div className="profile-listing-info">
+                            <span className="profile-listing-name">{listing.title}</span>
+                            <span className="profile-listing-price">${listing.price}</span>
+                            <span className={`profile-listing-status profile-listing-status--${listing.status.toLowerCase()}`}>
+                              {listing.status}
+                            </span>
+                          </div>
+                        </a>
+                      );
+                    })}
+                  </div>
+                )}
+                {isOwnProfile && (
+                  <a href="/shop/new-listing" className="profile-new-listing-btn">+ Create New Listing</a>
+                )}
+              </>
+            )}
+
+            {rightTab === "purchases" && (
+              <TransactionsPanel userId={authUserId} filter="purchases" />
+            )}
+
+            {rightTab === "sales" && (
+              <TransactionsPanel userId={authUserId} filter="sales" />
+            )}
+          </section>
+        </div>
       </div>
     </main>
   );

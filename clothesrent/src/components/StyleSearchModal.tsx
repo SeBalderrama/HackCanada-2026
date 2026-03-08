@@ -169,7 +169,7 @@ export default function StyleSearchModal({
             <div className="modal-actions">
               <button
                 type="button"
-                className="btn-primary shop-action-btn"
+                className="modal-action-btn modal-action-btn--primary"
                 onClick={handlePromptSearch}
                 disabled={loading || !prompt.trim()}>
                 {loading ? "Searching..." : "Find Matches"}
@@ -177,7 +177,7 @@ export default function StyleSearchModal({
               {auth0Id && (
                 <button
                   type="button"
-                  className="btn-outline shop-action-btn"
+                  className="modal-action-btn modal-action-btn--outline"
                   onClick={handleSavePrompt}
                   disabled={!prompt.trim()}>
                   Save Preference
@@ -190,15 +190,9 @@ export default function StyleSearchModal({
         {mode === "images" && (
           <div className="modal-section">
             <div className="modal-upload-row">
-              <button
-                type="button"
-                className="btn-outline shop-action-btn"
-                onClick={() => fileInputRef.current?.click()}>
-                Browse Photos
-              </button>
               <span className="modal-file-count">
                 {files.length > 0
-                  ? `${files.length} image(s)`
+                  ? `${files.length} image(s) selected`
                   : "JPG, PNG, WEBP · up to 10"}
               </span>
             </div>
@@ -228,10 +222,16 @@ export default function StyleSearchModal({
             <div className="modal-actions">
               <button
                 type="button"
-                className="btn-primary shop-action-btn"
+                className="modal-action-btn modal-action-btn--primary"
                 onClick={handleImageSearch}
                 disabled={loading || files.length === 0}>
-                {loading ? "Analyzing..." : "Analyze & Recommend"}
+                {loading ? "Analyzing..." : "Analyze & Match"}
+              </button>
+              <button
+                type="button"
+                className="modal-action-btn modal-action-btn--outline"
+                onClick={() => fileInputRef.current?.click()}>
+                Browse Photos
               </button>
             </div>
           </div>

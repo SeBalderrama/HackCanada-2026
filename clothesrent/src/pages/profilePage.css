@@ -15,11 +15,13 @@
 }
 
 .profile-card {
-  background: rgb(247 244 239 / 90%);
-  border: 1px solid rgb(28 28 28 / 10%);
-  box-shadow: 0 24px 50px rgb(28 28 28 / 9%);
-  padding: 2rem;
-  border-radius: 20px;
+  background: rgb(249 247 244 / 88%);
+  backdrop-filter: blur(20px) saturate(140%);
+  -webkit-backdrop-filter: blur(20px) saturate(140%);
+  border: 1px solid rgb(255 255 255 / 60%);
+  box-shadow: 0 24px 50px rgb(28 28 28 / 10%), 0 2px 0 rgb(255 255 255 / 80%) inset;
+  padding: 2rem 2.2rem;
+  border-radius: 22px;
 }
 
 .profile-title {
@@ -83,7 +85,9 @@
   color: var(--ink);
   font-family: "DM Sans", sans-serif;
   font-size: 0.92rem;
-  padding: 0.72rem 0.8rem;
+  padding: 0.72rem 0.9rem;
+  border-radius: 12px;
+  box-sizing: border-box;
 }
 
 .profile-input:focus {
@@ -120,6 +124,7 @@
   width: fit-content;
   font-size: 0.66rem;
   padding: 0.55rem 0.9rem;
+  border-radius: 12px;
 }
 
 .profile-location-message {
@@ -135,20 +140,23 @@
 
 .profile-readonly-field {
   margin: 0;
-  padding: 0.72rem 0.8rem;
+  padding: 0.72rem 0.9rem;
   border: 1px solid rgb(28 28 28 / 12%);
   background: rgb(255 255 255 / 65%);
   color: var(--ink);
   font-size: 0.92rem;
+  border-radius: 12px;
 }
 
 /* ── Listings Panel ── */
 .profile-listings-panel {
-  background: rgb(247 244 239 / 90%);
-  border: 1px solid rgb(28 28 28 / 10%);
-  box-shadow: 0 24px 50px rgb(28 28 28 / 9%);
-  padding: 1.75rem;
-  border-radius: 20px;
+  background: rgb(249 247 244 / 88%);
+  backdrop-filter: blur(20px) saturate(140%);
+  -webkit-backdrop-filter: blur(20px) saturate(140%);
+  border: 1px solid rgb(255 255 255 / 60%);
+  box-shadow: 0 24px 50px rgb(28 28 28 / 10%), 0 2px 0 rgb(255 255 255 / 80%) inset;
+  padding: 1.75rem 2rem;
+  border-radius: 22px;
 }
 
 .profile-listings-title {
@@ -392,6 +400,121 @@
   letter-spacing: 0.04em;
 }
 
+/* ── Right column (listings + transactions stacked) ── */
+.profile-right-col {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  min-width: 0;
+}
+
+/* ── Transactions section on profile ── */
+.profile-transactions-panel {
+  background: rgb(249 247 244 / 88%);
+  backdrop-filter: blur(20px) saturate(140%);
+  -webkit-backdrop-filter: blur(20px) saturate(140%);
+  border: 1px solid rgb(255 255 255 / 60%);
+  box-shadow: 0 24px 50px rgb(28 28 28 / 10%), 0 2px 0 rgb(255 255 255 / 80%) inset;
+  padding: 1.75rem 2rem;
+  border-radius: 22px;
+}
+
+/* ── Profile tabs (Listings / Transactions) ── */
+.profile-right-tabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid rgba(37, 31, 51, 0.1);
+  margin-bottom: 1.2rem;
+}
+
+.profile-right-tab {
+  padding: 0.55rem 1.1rem;
+  font-size: 0.7rem;
+  font-family: "DM Sans", sans-serif;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--warm-grey);
+  cursor: pointer;
+  transition: color 0.18s, border-color 0.18s;
+}
+
+.profile-right-tab.active {
+  color: var(--ink);
+  border-bottom-color: var(--ink);
+  font-weight: 500;
+}
+
+.profile-right-tab:hover:not(.active) {
+  color: var(--ink);
+}
+
+/* ── Transaction table ── */
+.txn-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  margin-top: 0.25rem;
+}
+
+.txn-section-title {
+  font-size: 0.68rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--warm-grey);
+  margin: 0 0 0.65rem;
+}
+
+.txn-table-wrap {
+  overflow-x: auto;
+  border: 1px solid rgba(37, 31, 51, 0.09);
+  border-radius: 14px;
+}
+
+.txn-item-cell {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.txn-item-link {
+  font-size: 0.78rem;
+  color: var(--ink);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  font-weight: 500;
+}
+
+.txn-item-link:hover {
+  color: var(--warm-grey);
+}
+
+.txn-user-link {
+  font-size: 0.76rem;
+  color: #4a90e2;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.txn-user-link:hover {
+  color: #2c6cbf;
+}
+
+.txn-price {
+  font-weight: 600;
+  font-size: 0.78rem;
+  color: var(--ink);
+}
+
+.txn-date {
+  font-size: 0.72rem;
+  color: var(--warm-grey);
+  white-space: nowrap;
+}
+
 /* ── Responsive ── */
 @media (max-width: 900px) {
   .profile-layout {
@@ -401,4 +524,144 @@
   .profile-listings-grid {
     grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
   }
+}
+
+/* ── Profile picture edit button ── */
+.profile-pic-container {
+  position: relative;
+  display: inline-block;
+}
+
+.profile-pic-edit-btn {
+  position: absolute;
+  bottom: 4px;
+  right: 4px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #251f33;
+  color: #fff;
+  border: 2px solid #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.18s ease, transform 0.15s ease;
+  box-shadow: 0 2px 8px rgb(0 0 0 / 22%);
+}
+
+.profile-pic-edit-btn:hover {
+  background: #3a3050;
+  transform: scale(1.08);
+}
+
+/* ── Picture popup ── */
+.profile-pic-popup-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgb(0 0 0 / 42%);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  animation: popupFadeIn 0.18s ease;
+}
+
+@keyframes popupFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.profile-pic-popup {
+  background: rgb(250 248 245 / 97%);
+  backdrop-filter: blur(24px) saturate(160%);
+  -webkit-backdrop-filter: blur(24px) saturate(160%);
+  border: 1px solid rgb(255 255 255 / 70%);
+  box-shadow: 0 32px 64px rgb(0 0 0 / 22%);
+  border-radius: 22px;
+  padding: 2rem 2.2rem 2rem;
+  width: min(420px, 90vw);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.2rem;
+  position: relative;
+  animation: popupSlideUp 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes popupSlideUp {
+  from { opacity: 0; transform: translateY(20px) scale(0.96); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.profile-pic-popup-close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: rgb(37 31 51 / 8%);
+  border: none;
+  color: #251f33;
+  font-size: 0.85rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s;
+}
+
+.profile-pic-popup-close:hover {
+  background: rgb(37 31 51 / 16%);
+}
+
+.profile-pic-popup-title {
+  font-size: 1.6rem;
+  color: #251f33;
+  margin: 0;
+  letter-spacing: 0.02em;
+}
+
+.profile-pic-popup-preview {
+  width: 140px;
+  height: 140px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 2px solid rgb(37 31 51 / 14%);
+  background: rgb(37 31 51 / 4%);
+  flex-shrink: 0;
+}
+
+.profile-pic-popup-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.profile-pic-popup-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.72rem;
+  color: #8a7f96;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.profile-pic-popup-upload-btn {
+  width: 100%;
+  text-align: center;
+  border-radius: 12px;
+}
+
+.profile-pic-popup-hint {
+  font-size: 0.74rem;
+  color: #8a7f96;
+  text-align: center;
+  margin: 0;
 }

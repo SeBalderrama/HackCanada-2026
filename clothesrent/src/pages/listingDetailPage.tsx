@@ -16,6 +16,7 @@ export default function ListingDetailPage() {
     const [days, setDays] = useState(1);
     const [added, setAdded] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
 
     const { addToCart, isInCart } = useCart();
     const { save, unsave, isSaved, boards } = useSaves();
@@ -64,24 +65,18 @@ export default function ListingDetailPage() {
 
     const handleEditListing = () => {
         if (!listing) return;
-        // Navigate to seller posting page with edit mode and listing ID
-        window.location.href = `/sell?edit=${listing._id}`;
+        window.location.href = `/shop/new-listing?edit=${listing._id}`;
     };
 
     const handleDeleteListing = async () => {
         if (!listing || !isCurrentUserSeller) return;
-        if (!confirm("Are you sure you want to delete this listing? This cannot be undone.")) {
-            return;
-        }
-
         setIsDeleting(true);
         try {
             await deleteListing(listing._id);
-            alert("Listing deleted successfully!");
             window.location.href = "/profile";
         } catch (err: any) {
-            alert("Failed to delete listing: " + (err.message || "Unknown error"));
             setIsDeleting(false);
+            setShowDeleteModal(false);
         }
     };
 
@@ -169,7 +164,7 @@ export default function ListingDetailPage() {
                     {listing.location && (
                         <div className="ldp-distance-badge">
                             {distanceResult.status === "ok" && (
-                                <span className="ldp-distance-ok">📏 {distanceResult.label}</span>
+                                <span className="ldp-distance-ok">{distanceResult.label}</span>
                             )}
                             {distanceResult.status === "loading" && (
                                 <span className="ldp-distance-loading">Calculating distance…</span>
@@ -185,133 +180,156 @@ export default function ListingDetailPage() {
                         )}
                     </div>
 
-                    {/* Rent / Buy toggle */}
-                    <div className="ldp-mode-toggle">
-                        {listing.dailyRate > 0 && (
-                            <button
-                                type="button"
-                                className={`ldp-mode-btn${mode === "rent" ? " active" : ""}`}
-                                onClick={() => setMode("rent")}
-                            >
-                                Rent
-                            </button>
-                        )}
-                        <button
-                            type="button"
-                            className={`ldp-mode-btn${mode === "buy" ? " active" : ""}`}
-                            onClick={() => setMode("buy")}
-                        >
-                            Buy
-                        </button>
-                    </div>
-
-                    {/* Day selector for rent */}
-                    {mode === "rent" && listing.dailyRate > 0 && (
-                        <div className="ldp-days">
-                            <label className="ldp-days-label" htmlFor="rental-days">
-                                Number of days
-                            </label>
-                            <div className="ldp-days-control">
-                                <button
-                                    type="button"
-                                    className="ldp-days-btn"
-                                    onClick={() => setDays((d) => Math.max(1, d - 1))}
-                                >
-                                    −
-                                </button>
-                                <input
-                                    id="rental-days"
-                                    type="number"
-                                    min="1"
-                                    max="30"
-                                    className="ldp-days-input"
-                                    value={days}
-                                    onChange={(e) => setDays(Math.max(1, Number(e.target.value)))}
-                                />
-                                <button
-                                    type="button"
-                                    className="ldp-days-btn"
-                                    onClick={() => setDays((d) => Math.min(30, d + 1))}
-                                >
-                                    +
-                                </button>
-                            </div>
-                            <div className="ldp-days-total">
-                                {days} day{days !== 1 ? "s" : ""} × ${listing.dailyRate} = <strong>${currentPrice.toFixed(2)}</strong>
-                            </div>
+                    {/* Sold banner */}
+                    {listing.status === "Sold" && (
+                        <div className="ldp-sold-banner">
+                            <span className="ldp-sold-label">SOLD</span>
+                            <span className="ldp-sold-sub">This item is no longer available.</span>
                         </div>
                     )}
 
-                    {/* Save / Add to Cart */}
-                    <div className="ldp-action-row">
+                    {/* Rent / Buy toggle — hidden for owner and sold items */}
+                    {!isCurrentUserSeller && listing.status !== "Sold" && (
+                        <>
+                        <div className="ldp-mode-toggle">
+                            {listing.dailyRate > 0 && (
+                                <button
+                                    type="button"
+                                    className={`ldp-mode-btn${mode === "rent" ? " active" : ""}`}
+                                    onClick={() => setMode("rent")}
+                                >
+                                    Rent
+                                </button>
+                            )}
+                            <button
+                                type="button"
+                                className={`ldp-mode-btn${mode === "buy" ? " active" : ""}`}
+                                onClick={() => setMode("buy")}
+                            >
+                                Buy
+                            </button>
+                        </div>
+
+                        {/* Day selector for rent */}
+                        {mode === "rent" && listing.dailyRate > 0 && (
+                            <div className="ldp-days">
+                                <label className="ldp-days-label" htmlFor="rental-days">
+                                    Number of days
+                                </label>
+                                <div className="ldp-days-control">
+                                    <button
+                                        type="button"
+                                        className="ldp-days-btn"
+                                        onClick={() => setDays((d) => Math.max(1, d - 1))}
+                                    >
+                                        −
+                                    </button>
+                                    <input
+                                        id="rental-days"
+                                        type="number"
+                                        min="1"
+                                        max="30"
+                                        className="ldp-days-input"
+                                        value={days}
+                                        onChange={(e) => setDays(Math.max(1, Number(e.target.value)))}
+                                    />
+                                    <button
+                                        type="button"
+                                        className="ldp-days-btn"
+                                        onClick={() => setDays((d) => Math.min(30, d + 1))}
+                                    >
+                                        +
+                                    </button>
+                                </div>
+                                <div className="ldp-days-total">
+                                    {days} day{days !== 1 ? "s" : ""} × ${listing.dailyRate} = <strong>${currentPrice.toFixed(2)}</strong>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Save / Add to Cart */}
+                        <div className="ldp-action-row">
+                            <button
+                                type="button"
+                                className={`ldp-save-btn${listing && isSaved(listing._id) ? " ldp-save-btn-active" : ""}`}
+                                onClick={() => {
+                                    if (!listing) return;
+                                    if (isSaved(listing._id)) {
+                                        unsave(listing._id);
+                                    } else {
+                                        save(listing, saveBoard);
+                                    }
+                                }}
+                                title={listing && isSaved(listing._id) ? "Unsave" : "Save"}
+                            >
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill={listing && isSaved(listing._id) ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                                    <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
+                                </svg>
+                            </button>
+
+                            {boards.length > 1 && (
+                                <select
+                                    className="ldp-board-select"
+                                    value={saveBoard}
+                                    onChange={(e) => setSaveBoard(e.target.value)}
+                                >
+                                    {boards.map((b) => (
+                                        <option key={b.id} value={b.id}>{b.name}</option>
+                                    ))}
+                                </select>
+                            )}
+                        </div>
+
                         <button
                             type="button"
-                            className={`ldp-save-btn${listing && isSaved(listing._id) ? " ldp-save-btn-active" : ""}`}
-                            onClick={() => {
-                                if (!listing) return;
-                                if (isSaved(listing._id)) {
-                                    unsave(listing._id);
-                                } else {
-                                    save(listing, saveBoard);
-                                }
-                            }}
-                            title={listing && isSaved(listing._id) ? "Unsave" : "Save"}
+                            className={`btn-primary ldp-cart-btn${added ? " ldp-cart-btn-added" : ""}`}
+                            onClick={handleAddToCart}
+                            disabled={alreadyInCart}
                         >
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill={listing && isSaved(listing._id) ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                                <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
-                            </svg>
+                            {alreadyInCart
+                                ? "Already in Cart"
+                                : added
+                                    ? "✓ Added!"
+                                    : `Add to Cart — $${currentPrice.toFixed(2)}`}
                         </button>
 
-                        {boards.length > 1 && (
-                            <select
-                                className="ldp-board-select"
-                                value={saveBoard}
-                                onChange={(e) => setSaveBoard(e.target.value)}
-                            >
-                                {boards.map((b) => (
-                                    <option key={b.id} value={b.id}>{b.name}</option>
-                                ))}
-                            </select>
-                        )}
-                    </div>
+                        <a href="/cart" className="ldp-view-cart">
+                            View Cart →
+                        </a>
+                        </>
+                    )}
 
-                    <button
-                        type="button"
-                        className={`btn-primary ldp-cart-btn${added ? " ldp-cart-btn-added" : ""}`}
-                        onClick={handleAddToCart}
-                        disabled={alreadyInCart}
-                    >
-                        {alreadyInCart
-                            ? "Already in Cart"
-                            : added
-                                ? "✓ Added!"
-                                : `Add to Cart — $${currentPrice.toFixed(2)}`}
-                    </button>
-
-                    <a href="/cart" className="ldp-view-cart">
-                        View Cart →
-                    </a>
-
-                    {/* Edit/Delete for seller */}
+                    {/* Owner actions */}
                     {isCurrentUserSeller && (
-                        <div className="ldp-seller-actions" style={{ display: "flex", gap: "0.5rem", marginTop: "1rem" }}>
-                            <button
-                                type="button"
-                                className="btn-outline"
-                                onClick={handleEditListing}
-                                style={{ flex: 1 }}
-                            >
-                                ✎ Edit Listing
-                            </button>
-                            <button
-                                type="button"
-                                className="btn-outline"
-                                onClick={handleDeleteListing}
-                                disabled={isDeleting}
-                                style={{ flex: 1, color: "#dc3545" }}
-                            >
-                                {isDeleting ? "Deleting..." : "🗑 Delete"}
-                            </button>
+                        <div className="ldp-owner-bar">
+                            <span className="ldp-owner-label">Your listing</span>
+                            <div className="ldp-owner-actions">
+                                <button
+                                    type="button"
+                                    className="ldp-owner-btn ldp-owner-btn--edit"
+                                    onClick={handleEditListing}
+                                >
+                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                                    </svg>
+                                    Edit
+                                </button>
+                                <button
+                                    type="button"
+                                    className="ldp-owner-btn ldp-owner-btn--delete"
+                                    onClick={() => setShowDeleteModal(true)}
+                                    disabled={isDeleting}
+                                >
+                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                        <polyline points="3 6 5 6 21 6" />
+                                        <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+                                        <path d="M10 11v6M14 11v6" />
+                                        <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+                                    </svg>
+                                    Delete
+                                </button>
+                            </div>
                         </div>
                     )}
 
@@ -330,6 +348,34 @@ export default function ListingDetailPage() {
                     </div>
                 </div>
             </div>
+
+        {/* Delete confirmation modal */}
+        {showDeleteModal && (
+            <div className="ldp-modal-backdrop" onClick={() => !isDeleting && setShowDeleteModal(false)}>
+                <div className="ldp-modal" onClick={(e) => e.stopPropagation()}>
+                    <h2 className="ldp-modal-title font-display">Delete Listing?</h2>
+                    <p className="ldp-modal-body">This will permanently remove <strong>{listing?.title}</strong>. This cannot be undone.</p>
+                    <div className="ldp-modal-actions">
+                        <button
+                            type="button"
+                            className="ldp-owner-btn ldp-owner-btn--edit"
+                            onClick={() => setShowDeleteModal(false)}
+                            disabled={isDeleting}
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            type="button"
+                            className="ldp-owner-btn ldp-owner-btn--delete ldp-owner-btn--delete-confirm"
+                            onClick={handleDeleteListing}
+                            disabled={isDeleting}
+                        >
+                            {isDeleting ? "Deleting…" : "Yes, delete"}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        )}
         </main>
     );
 }
