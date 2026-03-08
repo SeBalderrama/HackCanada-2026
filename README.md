@@ -1,8 +1,7 @@
 # HackCanada-2026
 
-**Wear_abouts**
-
-*Your closet on the cloud*
+**Wear_abouts**  
+*Your closet on the cloud*  
 
 Please refer to the front-end and back-end specific READMEs, found within their respective folders. 
 
