@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback, type FormEvent } from "react";
 import { generateOutfit, type OutfitItem } from "../api/listings";
 import { buildDisplayUrl } from "../utils/cloudinaryUrl";
+import { navigate } from "../utils/navigate";
 import gsap from "gsap";
 
 const SLOT_LABELS: Record<string, string> = {
@@ -193,7 +194,7 @@ export default function OutfitPage() {
     if (!d.hasMoved) {
       const item = outfitItems[d.idx];
       if (item) {
-        window.location.href = `/shop?highlight=${item.listingId}`;
+        navigate(`/listing/${item.listingId}`);
       }
     }
 
@@ -345,8 +346,9 @@ export default function OutfitPage() {
               return (
                 <a
                   key={item.listingId}
-                  href={`/shop?highlight=${item.listingId}`}
+                  href={`/listing/${item.listingId}`}
                   className="outfit-checkout-item"
+                  onClick={(e) => { e.preventDefault(); navigate(`/listing/${item.listingId}`); }}
                 >
                   <div className="outfit-checkout-img-wrap">
                     {imgUrl ? (
