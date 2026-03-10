@@ -8,7 +8,7 @@ A peer-to-peer clothing rental and resale platform. Users can list items from th
 
 | Service | URL |
 |---|---|
-| Frontend | https://threadify.pages.dev |
+| Frontend | https://hackcanada-2026-frontend.onrender.com/ |
 | Backend API | https://hackcanada-2026-production.up.railway.app |
 
 ---
